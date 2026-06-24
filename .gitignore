@@ -1,0 +1,11 @@
+# Root-level ignores. Component-specific ignores live in backend/.gitignore etc.
+.DS_Store
+*.log
+
+# Node (frontend, added in Phase 5)
+node_modules/
+.next/
+
+# Local env
+.env
+.env.*.local
