@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRMS SaaS — End-to-End Setup &amp; Run Guide</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#11161d; --panel2:#161c24; --border:#232b36;
+    --text:#d6dde6; --muted:#8b97a6; --accent:#4f8cff; --accent2:#22c55e;
+    --warn:#f59e0b; --danger:#ef4444; --code-bg:#0a0e14; --code-text:#c9d4e0;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.65;font-size:15.5px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-size:0.86em;
+    background:#1c2530;padding:2px 6px;border-radius:5px;color:#9ecbff}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 18px;
+    overflow-x:auto;font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;
+    line-height:1.55;color:var(--code-text)}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:320px;background:var(--panel);border-right:1px solid var(--border);
+    position:fixed;top:0;left:0;height:100vh;overflow-y:auto;padding:0 0 40px}
+  .sidebar-head{padding:22px 22px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:5}
+  .brand{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .brand-sub{font-size:11.5px;color:var(--muted);margin-top:4px;letter-spacing:.3px;text-transform:uppercase}
+  nav{padding:8px 12px}
+  nav .group{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+    padding:16px 10px 6px;font-weight:700}
+  nav a{display:block;padding:6px 10px;border-radius:7px;color:var(--text);font-size:13.6px;margin:1px 0}
+  nav a:hover{background:var(--panel2);text-decoration:none}
+  nav a.active{background:#1b2a44;color:#cfe0ff}
+  .content{margin-left:320px;flex:1;max-width:1000px;padding:36px 52px 120px}
+  @media(max-width:1100px){.content{padding:28px 26px 100px}}
+  @media(max-width:900px){.sidebar{display:none}.content{margin-left:0}}
+  h1{font-size:30px;font-weight:800;color:#fff;margin:8px 0 6px;letter-spacing:-.4px}
+  h2{font-size:23px;font-weight:700;color:#fff;margin:46px 0 10px;padding-top:14px;border-top:1px solid var(--border);letter-spacing:-.2px}
+  h3{font-size:18px;font-weight:700;color:#eaf0f7;margin:28px 0 8px}
+  h4{font-size:14px;font-weight:700;color:#cfd8e3;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.4px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:6px 0}
+  .hero{background:linear-gradient(135deg,#15203a,#11161d);border:1px solid var(--border);
+    border-radius:16px;padding:30px 32px;margin-bottom:10px}
+  .hero h1{margin-top:0}
+  .hero p{color:var(--muted);font-size:16px;max-width:780px}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.6px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#fff;font-weight:600}
+  tr:nth-child(even) td{background:#0f141b}
+  .callout{border-radius:10px;padding:14px 18px;margin:16px 0;border:1px solid var(--border);background:var(--panel2)}
+  .callout.note{border-left:4px solid var(--accent)}
+  .callout.warn{border-left:4px solid var(--warn)}
+  .callout.danger{border-left:4px solid var(--danger)}
+  .callout.ok{border-left:4px solid var(--accent2)}
+  .callout .t{font-weight:700;color:#fff;margin-bottom:4px}
+  .step{counter-increment:step;position:relative;padding:4px 0 4px 0;margin:18px 0}
+  .pathtab{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
+    background:#13314a;color:#60a5fa;border:1px solid #1d4a72;margin-right:8px}
+  .pathtab.b{background:#15351f;color:#4ade80;border-color:#1f5130}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:#15351f;color:#4ade80;border:1px solid #1f5130}
+  .badge-os{display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:700;background:#1c2530;color:#9ecbff;margin-right:6px}
+  .footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:12.5px}
+  .tip{color:#7ee787}
+  .filehint{color:#ffd479}
+  .kbd{background:#1c2530;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 7px;font-size:12px;font-family:monospace}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand"><span class="dot"></span> HRMS SaaS</div>
+      <div class="brand-sub">Setup &amp; Run Guide</div>
+    </div>
+    <nav id="nav">
+      <div class="group">Start Here</div>
+      <a href="#overview">0. What you are setting up</a>
+      <a href="#stack">1. Technology stack</a>
+      <div class="group">Run on Localhost</div>
+      <a href="#local-docker">2. Path A — Docker (easiest)</a>
+      <a href="#local-native">3. Path B — Native install</a>
+      <a href="#local-native-ubuntu">3.1 Ubuntu / WSL</a>
+      <a href="#local-native-mac">3.2 macOS</a>
+      <a href="#local-native-windows">3.3 Windows</a>
+      <a href="#local-run">3.4 Configure, migrate, run</a>
+      <a href="#verify">4. Verify it actually works</a>
+      <a href="#local-trouble">5. Localhost troubleshooting</a>
+      <div class="group">Deploy to a VPS</div>
+      <a href="#vps-overview">6. VPS overview &amp; sizing</a>
+      <a href="#vps-dns">7. Domain &amp; DNS</a>
+      <a href="#vps-docker">8. Path A — Docker on VPS</a>
+      <a href="#vps-native">9. Path B — Native production</a>
+      <a href="#vps-workers">10. Queue + scheduler (always-on)</a>
+      <a href="#vps-ssl">11. HTTPS / SSL</a>
+      <a href="#prod-env">12. Production .env reference</a>
+      <a href="#golive">13. Go-live checklist</a>
+      <div class="group">Operate</div>
+      <a href="#redeploy">14. Updating &amp; redeploying</a>
+      <a href="#ops">15. Backups &amp; ongoing ops</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <section class="hero" id="overview">
+      <h1>End-to-End Setup &amp; Run Guide</h1>
+      <p>A complete, copy-paste runbook to get the HRMS SaaS platform <b>fully running</b> — first on
+      your local machine, then on a production VPS. Every tool, every command, every environment
+      value, and a smoke test to prove it works. No prior knowledge of the project assumed.</p>
+    </section>
+
+    <div class="callout note">
+      <div class="t">What is "the app" right now?</div>
+      The product today is a <b>Laravel 12 REST API backend</b> (the brains: multi-tenancy, auth,
+      subscriptions, Employees, Attendance, Leave, Payroll, Billing). The customer-facing
+      <b>web UI (Next.js) is not built yet</b>. So "fully functional" here means: the API is running,
+      the database is migrated and seeded, background workers + scheduler are alive, and you can
+      drive the whole product over HTTP (we prove it in <a href="#verify">§4</a>). Any web/mobile
+      frontend or API client then talks to this same API.
+    </div>
+
+    <div class="callout ok">
+      <div class="t">Which path should I pick?</div>
+      <b>Docker</b> is the fastest and most reliable — it installs PostgreSQL, Redis, PHP, the queue
+      worker and scheduler for you. Choose <b>native</b> only if you cannot use Docker or want each
+      service installed directly on the host. Both paths are fully documented below.
+    </div>
+
+    <h2 id="stack">1. Technology stack — what's needed &amp; why</h2>
+    <p>These are the technologies this project runs on. With Docker you do <b>not</b> install most of
+    them yourself (the containers provide them); with a native install you install each one.</p>
+    <table>
+      <thead><tr><th>Technology</th><th>Version</th><th>Why this project needs it</th><th>Native install?</th></tr></thead>
+      <tbody>
+        <tr><td><b>PHP</b></td><td>8.2+ (8.4 recommended)</td><td>Runs the Laravel backend. Needs extensions: <code>pdo_pgsql</code>, <code>redis</code>, <code>intl</code>, <code>bcmath</code>, <code>zip</code>, <code>mbstring</code>, <code>opcache</code>, <code>pcntl</code>.</td><td>Yes</td></tr>
+        <tr><td><b>Composer</b></td><td>2.x</td><td>Installs PHP dependencies (Laravel, JWT, Spatie permissions).</td><td>Yes</td></tr>
+        <tr><td><b>PostgreSQL</b></td><td>16</td><td>The database. All tenant data lives here.</td><td>Yes (or container)</td></tr>
+        <tr><td><b>Redis</b></td><td>7</td><td>Cache (entitlements), queue (background jobs), sessions.</td><td>Yes (or container)</td></tr>
+        <tr><td><b>Node.js + npm</b></td><td>20+</td><td>Builds front-end assets via Vite (for the Blade welcome page / future UI). Not needed to serve the API, but part of a complete setup.</td><td>Yes</td></tr>
+        <tr><td><b>Git</b></td><td>any</td><td>To clone the repository.</td><td>Yes</td></tr>
+        <tr><td><b>Docker + Compose</b></td><td>latest</td><td>Optional but recommended: runs the whole stack in containers.</td><td>For Docker path</td></tr>
+      </tbody>
+    </table>
+    <div class="callout note"><div class="t">The repository layout you'll be working in</div>
+      <pre><code>HRM/
+├── backend/        the Laravel API  (you run commands from here)
+│   ├── .env.example   copy this to .env
+│   ├── artisan        the Laravel CLI
+│   └── ...
+├── infra/          Docker: docker-compose.yml, PHP image, Nginx config
+└── documentation.html / business-documentation.html / setup-guide.html</code></pre>
+    </div>
+
+
+    <h2 id="local-docker">2. Path A — Run on localhost with Docker <span class="pill">RECOMMENDED</span></h2>
+    <p>This brings up six containers: <code>app</code> (PHP-FPM), <code>nginx</code> (web server on
+    port 8000), <code>postgres</code>, <code>redis</code>, <code>horizon</code> (queue worker), and
+    <code>scheduler</code>. You only need <b>Docker</b> and <b>Git</b> installed.</p>
+
+    <h3>Step 1 — Install Docker</h3>
+    <p><span class="badge-os">Windows / macOS</span> Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.
+    <span class="badge-os">Ubuntu</span> install Docker Engine + Compose plugin:</p>
+    <pre><code>sudo apt update && sudo apt install -y docker.io docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER     # then log out/in so you can run docker without sudo
+docker --version && docker compose version    # verify</code></pre>
+
+    <h3>Step 2 — Clone the repository</h3>
+    <pre><code>git clone https://github.com/geryshadesinnovations/HRM.git
+cd HRM</code></pre>
+
+    <h3>Step 3 — Create the environment file</h3>
+    <pre><code>cp backend/.env.example backend/.env</code></pre>
+    <div class="callout danger">
+      <div class="t">CRITICAL for Docker: fix the host names</div>
+      The example file points the database and Redis at <code>127.0.0.1</code>, which is correct for a
+      <i>native</i> install but <b>wrong inside Docker</b> — there, services reach each other by their
+      compose service name. Edit <code>backend/.env</code> and set:
+      <pre><code>DB_HOST=postgres
+REDIS_HOST=redis</code></pre>
+      Leave <code>DB_DATABASE=hrms</code>, <code>DB_USERNAME=hrms</code>, <code>DB_PASSWORD=secret</code>
+      as-is (they match the Postgres container defaults).
+    </div>
+
+    <h3>Step 4 — Set a JWT secret (required, or login/tokens fail)</h3>
+    <p>The auth system signs tokens with <code>JWT_SECRET</code>. Generate one and write it into
+    <code>backend/.env</code>:</p>
+    <pre><code># macOS/Linux: generate a 64-char secret and set it in .env
+SECRET=$(openssl rand -hex 32)
+sed -i.bak "s/^JWT_SECRET=.*/JWT_SECRET=$SECRET/" backend/.env
+
+# (Windows PowerShell alternative)
+# $s = -join ((48..57)+(97..102) | Get-Random -Count 64 | % {[char]$_})
+# then paste it after JWT_SECRET= in backend/.env</code></pre>
+
+    <h3>Step 5 — Build and start the stack</h3>
+    <pre><code>docker compose -f infra/docker-compose.yml up -d --build</code></pre>
+    <p>Wait until <code>docker compose -f infra/docker-compose.yml ps</code> shows the containers up
+    (Postgres has a healthcheck the app waits on).</p>
+
+    <h3>Step 6 — Install dependencies, generate the app key, migrate &amp; seed</h3>
+    <div class="callout warn"><div class="t">Why this runs inside the container</div>
+      The compose file bind-mounts <code>backend/</code> into the container, which hides the
+      vendor folder baked into the image. So run Composer once inside the running container to
+      populate <code>backend/vendor</code>, then set the key and build the database.</div>
+    <pre><code>cd infra
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --seed
+docker compose restart horizon scheduler   # pick up the freshly installed vendor
+cd ..</code></pre>
+    <p>The <code>--seed</code> step creates the canonical data: 7 modules, 3 plans
+    (Starter/Growth/Enterprise), 5 roles with ~30 permissions, and the <b>Super Admin</b> account.</p>
+
+    <h3>Step 7 — It's running</h3>
+    <ul>
+      <li>API base URL: <code>http://localhost:8000</code></li>
+      <li>Health check: open <code>http://localhost:8000/up</code> → should say the app is up.</li>
+      <li>Super Admin login: <code>superadmin@hrms.test</code> / <code>password</code> (override via <code>SUPER_ADMIN_EMAIL</code>/<code>SUPER_ADMIN_PASSWORD</code> before seeding).</li>
+    </ul>
+    <p>Now jump to <a href="#verify">§4 — Verify it actually works</a> to drive the full product over HTTP.</p>
+
+    <h4>Handy Docker commands</h4>
+    <pre><code>cd infra
+docker compose -f docker-compose.yml logs -f app      # tail API logs
+docker compose -f docker-compose.yml ps               # container status
+docker compose -f docker-compose.yml exec app php artisan tinker   # REPL
+docker compose -f docker-compose.yml exec app php artisan test     # run tests
+docker compose -f docker-compose.yml down             # stop (keeps data volume)
+docker compose -f docker-compose.yml down -v          # stop AND delete the database</code></pre>
+
+
+    <h2 id="local-native">3. Path B — Run on localhost with a native install</h2>
+    <p>Here you install PHP, Composer, PostgreSQL, Redis, Node, and Git directly on your machine.
+    Pick your OS below, then continue to <a href="#local-run">§3.4</a> which is the same for everyone.</p>
+
+    <h3 id="local-native-ubuntu">3.1 <span class="badge-os">Ubuntu / Debian / WSL</span></h3>
+    <pre><code># 1. Update the system
+sudo apt update && sudo apt upgrade -y
+
+# 2. PHP 8.4 + the extensions this project needs
+sudo add-apt-repository ppa:ondrej/php -y && sudo apt update
+sudo apt install -y php8.4-cli php8.4-pgsql php8.4-redis php8.4-intl \
+  php8.4-bcmath php8.4-zip php8.4-mbstring php8.4-curl php8.4-xml
+php -v                                   # expect PHP 8.4.x
+
+# 3. Composer
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+composer --version
+
+# 4. Node.js 20 + npm
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v && npm -v
+
+# 5. PostgreSQL 16
+sudo apt install -y postgresql-16
+sudo systemctl enable --now postgresql
+
+# 6. Redis 7
+sudo apt install -y redis-server
+sudo systemctl enable --now redis-server
+redis-cli ping                           # expect PONG
+
+# 7. Git
+sudo apt install -y git</code></pre>
+    <p class="tip">On Windows, the smoothest native experience is WSL2: run <code>wsl --install -d Ubuntu</code>
+    in an elevated PowerShell, then follow these exact Ubuntu steps inside WSL.</p>
+
+    <h3 id="local-native-mac">3.2 <span class="badge-os">macOS</span> (Homebrew)</h3>
+    <pre><code># Install Homebrew first if you don't have it:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+brew install php@8.4 composer node postgresql@16 redis git
+brew services start postgresql@16
+brew services start redis
+
+php -v && composer --version && node -v && redis-cli ping</code></pre>
+
+    <h3 id="local-native-windows">3.3 <span class="badge-os">Windows (native, no WSL)</span></h3>
+    <pre><code># In an elevated PowerShell with Chocolatey (https://chocolatey.org/install):
+choco install php composer nodejs-lts postgresql16 redis-64 git -y
+
+# Then enable the required PHP extensions in php.ini (remove the leading ;):
+#   extension=pdo_pgsql
+#   extension=pgsql
+#   extension=redis        (install via PECL if missing)
+#   extension=intl
+#   extension=zip
+#   extension=bcmath
+#   extension=mbstring
+#   extension=openssl
+php -m    # confirm the extensions above are listed</code></pre>
+    <div class="callout note"><div class="t">Recommendation</div>For Windows, WSL2 (§3.1) is far less
+      friction than native — especially for the <code>redis</code> PHP extension. Prefer it if you can.</div>
+
+    <h3 id="local-run">3.4 Configure, migrate &amp; run (all OSes)</h3>
+    <p>Run everything from the <code>backend/</code> directory.</p>
+    <pre><code>git clone https://github.com/geryshadesinnovations/HRM.git
+cd HRM/backend
+
+# 1. PHP dependencies
+composer install
+
+# 2. Environment file
+cp .env.example .env          # native install: keep DB_HOST=127.0.0.1 and REDIS_HOST=127.0.0.1
+
+# 3. Application key
+php artisan key:generate
+
+# 4. JWT secret (REQUIRED)
+SECRET=$(openssl rand -hex 32)
+sed -i.bak "s/^JWT_SECRET=.*/JWT_SECRET=$SECRET/" .env     # macOS/Linux/WSL
+
+# 5. Create the database + user in PostgreSQL
+sudo -u postgres psql -c "CREATE USER hrms WITH PASSWORD 'secret';"
+sudo -u postgres psql -c "CREATE DATABASE hrms OWNER hrms;"
+#   (.env already has DB_DATABASE=hrms / DB_USERNAME=hrms / DB_PASSWORD=secret)
+
+# 6. Build the schema and seed reference data (modules, plans, roles, super admin)
+php artisan migrate --seed
+
+# 7. Build front-end assets (optional for API-only use)
+npm install
+npm run build
+
+# 8. Start the API
+php artisan serve            # serves http://localhost:8000</code></pre>
+
+    <h4>Start the background worker &amp; scheduler (separate terminals)</h4>
+    <p>For the platform to be <b>fully functional</b> (queued jobs + the subscription lifecycle sweep),
+    run these alongside <code>php artisan serve</code>:</p>
+    <pre><code># Terminal 2 — process queued jobs
+php artisan queue:work --tries=3 --timeout=120
+
+# Terminal 3 — run scheduled tasks (e.g. subscriptions:sweep, hourly)
+php artisan schedule:work</code></pre>
+    <div class="callout ok"><div class="t">One-command dev mode</div>
+      The repo ships a Composer script that runs the server, queue, logs, and Vite together:
+      <pre><code>composer dev</code></pre>
+      (Requires Node, since it uses <code>npx concurrently</code>.)
+    </div>
+    <p>Now continue to <a href="#verify">§4</a> to confirm everything works.</p>
+
+
+    <h2 id="verify">4. Verify it actually works (end-to-end smoke test)</h2>
+    <p>This walks the full product over HTTP: health → create a company → log in → call authenticated
+    and subscription-gated endpoints. It works identically for the Docker and native setups (same
+    <code>http://localhost:8000</code>). Install <code>jq</code> for pretty JSON, or drop the <code>| jq</code> parts.</p>
+
+    <h3>4.1 Health check</h3>
+    <pre><code>curl -i http://localhost:8000/up
+# Expect: HTTP/1.1 200 OK</code></pre>
+
+    <h3>4.2 Register a company (creates company + admin user + trial subscription)</h3>
+    <p>We pick the <code>growth</code> plan so Attendance, Leave <b>and</b> Payroll are all licensed.</p>
+    <pre><code>curl -s -X POST http://localhost:8000/api/v1/auth/register-company \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_name": "Acme Pvt Ltd",
+    "admin_name": "Asha Rao",
+    "email": "asha@acme.test",
+    "password": "secret123",
+    "password_confirmation": "secret123",
+    "plan_code": "growth"
+  }' | jq
+
+# Response (201) contains data.company, data.user, and data.tokens.{access_token, refresh_token}</code></pre>
+
+    <h3>4.3 Log in and capture the access token</h3>
+    <pre><code>TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"asha@acme.test","password":"secret123"}' \
+  | jq -r '.data.tokens.access_token')
+
+echo "$TOKEN"     # should print a long JWT</code></pre>
+
+    <h3>4.4 Call authenticated endpoints</h3>
+    <pre><code># Who am I? (profile + roles + permissions)
+curl -s http://localhost:8000/api/v1/me -H "Authorization: Bearer $TOKEN" | jq
+
+# What is this company entitled to? (status, modules, features, seats)
+curl -s http://localhost:8000/api/v1/me/entitlements -H "Authorization: Bearer $TOKEN" | jq
+
+# Available plans
+curl -s http://localhost:8000/api/v1/plans -H "Authorization: Bearer $TOKEN" | jq</code></pre>
+
+    <h3>4.5 Exercise the business modules</h3>
+    <pre><code># Create an employee (subject to the plan's seat limit)
+EMP=$(curl -s -X POST http://localhost:8000/api/v1/employees \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"employee_code":"E1","first_name":"Ravi","last_name":"Kumar","status":"active"}')
+echo "$EMP" | jq
+EMP_UUID=$(echo "$EMP" | jq -r '.data.uuid')
+
+# List employees
+curl -s http://localhost:8000/api/v1/employees -H "Authorization: Bearer $TOKEN" | jq
+
+# Mark attendance for that employee (module:attendance is licensed on growth)
+curl -s -X POST http://localhost:8000/api/v1/attendance/mark \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"employee\":\"$EMP_UUID\",\"work_date\":\"2026-06-25\",\"status\":\"present\"}" | jq
+
+# Create a leave type, then a payroll component (module:leave / module:payroll)
+curl -s -X POST http://localhost:8000/api/v1/leave/types \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"code":"casual","name":"Casual Leave","is_paid":true,"annual_quota":12}' | jq
+
+curl -s -X POST http://localhost:8000/api/v1/payroll/components \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"code":"BASIC","name":"Basic","type":"earning"}' | jq</code></pre>
+
+    <div class="callout ok"><div class="t">If all of the above returned JSON (not errors)</div>
+      The platform is fully functional: multi-tenancy, JWT auth, RBAC, the subscription gate, and the
+      HR/Attendance/Leave/Payroll modules are all live and wired to the database. A web or mobile
+      client now simply calls these same endpoints with the <code>Authorization: Bearer</code> header.</div>
+
+    <h3>4.6 Prove the subscription gate (optional but reassuring)</h3>
+    <p>Register a second company on the <code>starter</code> plan (no Payroll) and confirm a payroll
+    call is blocked with <code>403 MODULE_NOT_LICENSED</code> — demonstrating that paywalling works:</p>
+    <pre><code>T2=$(curl -s -X POST http://localhost:8000/api/v1/auth/register-company -H "Content-Type: application/json" \
+  -d '{"company_name":"Beta","admin_name":"B","email":"b@beta.test","password":"secret123","password_confirmation":"secret123","plan_code":"starter"}' \
+  | jq -r '.data.tokens.access_token')
+
+curl -s -X POST http://localhost:8000/api/v1/payroll/runs -H "Authorization: Bearer $T2" \
+  -H "Content-Type: application/json" -d '{"year":2026,"month":6}' | jq
+# Expect: error.code = "MODULE_NOT_LICENSED"</code></pre>
+
+    <h3>4.7 Run the automated test suite (optional)</h3>
+    <pre><code># native:
+cd HRM/backend && php artisan test
+# docker:
+cd HRM/infra && docker compose exec app php artisan test
+# Expect: OK (25 tests)</code></pre>
+
+    <h2 id="local-trouble">5. Localhost troubleshooting</h2>
+    <table>
+      <thead><tr><th>Symptom</th><th>Cause &amp; fix</th></tr></thead>
+      <tbody>
+        <tr><td><code>SQLSTATE[08006] could not connect</code> (Docker)</td><td><code>DB_HOST</code> still <code>127.0.0.1</code>. Set <code>DB_HOST=postgres</code>, then <code>docker compose restart app</code>.</td></tr>
+        <tr><td><code>could not find driver</code></td><td>PHP <code>pdo_pgsql</code> extension missing (native). Install <code>php8.4-pgsql</code> and restart the terminal.</td></tr>
+        <tr><td><code>Class "Redis" not found</code></td><td>phpredis missing (native). Install <code>php8.4-redis</code>; verify with <code>php -m | grep redis</code>. (Docker has it built in.)</td></tr>
+        <tr><td>Login returns a server error / empty token</td><td><code>JWT_SECRET</code> is empty. Set it in <code>.env</code>, then <code>php artisan config:clear</code> (or <code>docker compose restart app</code>).</td></tr>
+        <tr><td><code>No application encryption key</code></td><td>Run <code>php artisan key:generate</code> (or inside the container).</td></tr>
+        <tr><td>404 on every <code>/api/v1/...</code> route</td><td>You're hitting the wrong base URL/port. The API is on <code>http://localhost:8000</code>.</td></tr>
+        <tr><td>Docker: requests 502 right after <code>up</code></td><td>Vendor not installed yet. Run <code>docker compose exec app composer install</code> then <code>docker compose restart</code>.</td></tr>
+        <tr><td>Changes to <code>.env</code> not taking effect</td><td><code>php artisan config:clear</code> (native) or <code>docker compose restart app</code> (Docker).</td></tr>
+        <tr><td>Queued jobs / sweep never run</td><td>Start <code>php artisan queue:work</code> and <code>php artisan schedule:work</code> (native). Docker runs these as the <code>horizon</code>/<code>scheduler</code> containers.</td></tr>
+      </tbody>
+    </table>
+
+
+    <h2 id="vps-overview">6. Deploy to a VPS — overview &amp; sizing</h2>
+    <p>A VPS (e.g. DigitalOcean, Hetzner, Linode, AWS Lightsail/EC2) is a Linux server you rent. We
+    target <b>Ubuntu 22.04/24.04 LTS</b>. As with localhost there are two paths:</p>
+    <ul>
+      <li><b>Path A — Docker Compose on the VPS</b> (§8): fastest; the same stack as local, with a host Nginx + SSL in front. Best for a single server.</li>
+      <li><b>Path B — Native production</b> (§9): each service installed on the host, workers under Supervisor. Most control; standard for scaling later.</li>
+    </ul>
+    <h3>Recommended sizing</h3>
+    <table>
+      <thead><tr><th>Scale</th><th>vCPU</th><th>RAM</th><th>Disk</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Pilot / ≤50 companies</td><td>2</td><td>4 GB</td><td>40 GB SSD</td><td>All-in-one (Docker path is ideal)</td></tr>
+        <tr><td>Growing</td><td>4</td><td>8–16 GB</td><td>100 GB SSD</td><td>Consider managed Postgres/Redis</td></tr>
+        <tr><td>Large</td><td>app: N×2</td><td>4 GB/node</td><td>managed DB</td><td>Load balancer + multiple stateless app nodes</td></tr>
+      </tbody>
+    </table>
+    <h3>First 5 minutes on a fresh server (do this for either path)</h3>
+    <pre><code># SSH in as root (or a sudo user) using the IP your provider gave you
+ssh root@YOUR_SERVER_IP
+
+# Patch the OS
+apt update && apt upgrade -y
+
+# Create a non-root deploy user (safer than working as root)
+adduser deploy && usermod -aG sudo deploy
+
+# Basic firewall: allow SSH + web
+apt install -y ufw
+ufw allow OpenSSH
+ufw allow 80
+ufw allow 443
+ufw --force enable</code></pre>
+
+    <h2 id="vps-dns">7. Domain &amp; DNS</h2>
+    <p>Point a domain at the server before requesting SSL certificates.</p>
+    <ol>
+      <li>In your DNS provider, create an <b>A record</b>: <code>api.yourdomain.com → YOUR_SERVER_IP</code>.</li>
+      <li>Wait for propagation (usually minutes). Verify: <code>dig +short api.yourdomain.com</code> returns your IP.</li>
+    </ol>
+    <p>This guide uses <code>api.yourdomain.com</code> as the API host throughout — replace it with yours.</p>
+
+    <h2 id="vps-docker">8. Path A — Docker Compose on the VPS</h2>
+    <h3>Step 1 — Install Docker</h3>
+    <pre><code>curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER && newgrp docker
+docker --version && docker compose version</code></pre>
+
+    <h3>Step 2 — Clone &amp; configure for production</h3>
+    <pre><code>sudo mkdir -p /var/www && sudo chown $USER:$USER /var/www
+cd /var/www
+git clone https://github.com/geryshadesinnovations/HRM.git
+cd HRM
+cp backend/.env.example backend/.env</code></pre>
+    <p>Edit <code>backend/.env</code> for production (see the full reference in <a href="#prod-env">§12</a>). At minimum:</p>
+    <pre><code>APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://api.yourdomain.com
+
+DB_HOST=postgres          # container name
+DB_PASSWORD=<strong-unique-password>
+REDIS_HOST=redis
+
+JWT_SECRET=<output of: openssl rand -hex 32>
+SUPER_ADMIN_EMAIL=you@yourcompany.com
+SUPER_ADMIN_PASSWORD=<strong-password></code></pre>
+    <div class="callout warn"><div class="t">Match the Postgres container password</div>
+      The Postgres container reads <code>DB_DATABASE/DB_USERNAME/DB_PASSWORD</code> for its initial
+      credentials. Set a strong <code>DB_PASSWORD</code> <b>before</b> the first <code>up</code>
+      (after the volume is created, changing it requires recreating the volume).</div>
+
+    <h3>Step 3 — Bring up the stack &amp; initialise</h3>
+    <pre><code>cd /var/www/HRM
+docker compose -f infra/docker-compose.yml up -d --build
+
+cd infra
+docker compose exec app composer install --no-dev --optimize-autoloader
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --force --seed
+docker compose exec app php artisan config:cache
+docker compose exec app php artisan route:cache
+docker compose restart app horizon scheduler
+cd ..</code></pre>
+    <p>The stack now serves on <code>127.0.0.1:8000</code> (compose maps nginx to host port 8000).
+    We put a host Nginx + SSL in front of it next (§11). The <code>horizon</code> and
+    <code>scheduler</code> containers already run the queue worker and scheduled tasks for you.</p>
+
+    <h2 id="vps-native">9. Path B — Native production on Ubuntu</h2>
+    <h3>Step 1 — Install the full stack</h3>
+    <pre><code>sudo add-apt-repository ppa:ondrej/php -y && sudo apt update
+
+# Web server, PHP-FPM + extensions, DB, cache, process manager
+sudo apt install -y nginx \
+  php8.4-fpm php8.4-pgsql php8.4-redis php8.4-intl php8.4-bcmath \
+  php8.4-zip php8.4-mbstring php8.4-curl php8.4-xml php8.4-opcache \
+  postgresql-16 redis-server supervisor git unzip
+
+# Composer
+curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
+
+sudo systemctl enable --now nginx php8.4-fpm postgresql redis-server supervisor</code></pre>
+
+    <h3>Step 2 — Database</h3>
+    <pre><code>sudo -u postgres psql -c "CREATE USER hrms WITH PASSWORD 'STRONG_PASSWORD_HERE';"
+sudo -u postgres psql -c "CREATE DATABASE hrms OWNER hrms;"</code></pre>
+
+    <h3>Step 3 — Get the code &amp; install dependencies</h3>
+    <pre><code>sudo mkdir -p /var/www && sudo chown $USER:$USER /var/www
+cd /var/www
+git clone https://github.com/geryshadesinnovations/HRM.git
+cd HRM/backend
+composer install --no-dev --optimize-autoloader</code></pre>
+
+    <h3>Step 4 — Configure the environment</h3>
+    <pre><code>cp .env.example .env
+# Edit .env (see §12). Key production values:
+#   APP_ENV=production   APP_DEBUG=false   APP_URL=https://api.yourdomain.com
+#   DB_HOST=127.0.0.1    DB_PASSWORD=STRONG_PASSWORD_HERE
+#   REDIS_HOST=127.0.0.1
+#   JWT_SECRET=<openssl rand -hex 32>
+#   SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD
+
+php artisan key:generate
+php artisan migrate --force --seed</code></pre>
+
+    <h3>Step 5 — Optimise &amp; fix permissions</h3>
+    <pre><code>php artisan config:cache
+php artisan route:cache
+php artisan event:cache
+
+# Nginx/PHP-FPM run as www-data; it must own the writable dirs
+sudo chown -R www-data:www-data /var/www/HRM/backend/storage /var/www/HRM/backend/bootstrap/cache</code></pre>
+
+    <h3>Step 6 — Nginx site (HTTP first; SSL added in §11)</h3>
+    <pre><code>sudo tee /etc/nginx/sites-available/hrms >/dev/null &lt;&lt;'NGINX'
+server {
+    listen 80;
+    server_name api.yourdomain.com;
+    root /var/www/HRM/backend/public;     # Laravel's public dir is the web root
+    index index.php;
+    client_max_body_size 25m;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    location / { try_files $uri $uri/ /index.php?$query_string; }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+    }
+    location ~ /\.(?!well-known).* { deny all; }
+}
+NGINX
+
+sudo ln -sf /etc/nginx/sites-available/hrms /etc/nginx/sites-enabled/hrms
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx</code></pre>
+    <p>Visit <code>http://api.yourdomain.com/up</code> — it should return 200. Continue to §10 and §11.</p>
+
+
+    <h2 id="vps-workers">10. Queue worker + scheduler (always-on)</h2>
+    <p>The platform needs two background processes running permanently: the <b>queue worker</b>
+    (processes jobs) and the <b>scheduler</b> (runs <code>subscriptions:sweep</code> and future timed
+    tasks). With the <b>Docker path</b> these are already the <code>horizon</code> and
+    <code>scheduler</code> containers — skip this section. For the <b>native path</b>, use Supervisor
+    + cron.</p>
+
+    <h3>Queue worker via Supervisor</h3>
+    <pre><code>sudo tee /etc/supervisor/conf.d/hrms-worker.conf >/dev/null &lt;&lt;'CONF'
+[program:hrms-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/HRM/backend/artisan queue:work redis --sleep=3 --tries=3 --timeout=120
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/hrms-worker.log
+stopwaitsecs=3600
+CONF
+
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl status        # should show hrms-worker:* RUNNING</code></pre>
+
+    <h3>Scheduler via cron</h3>
+    <pre><code># Run Laravel's scheduler every minute (it internally decides what's due).
+sudo crontab -u www-data -e
+# add this single line:
+* * * * * cd /var/www/HRM/backend && php artisan schedule:run >> /dev/null 2>&1</code></pre>
+    <p>Verify the sweep command is registered: <code>php artisan list | grep subscriptions:sweep</code>.</p>
+
+    <h2 id="vps-ssl">11. HTTPS / SSL (free, via Let's Encrypt)</h2>
+    <p>Never run an auth API over plain HTTP in production — Bearer tokens would be exposed.</p>
+
+    <h3>Native path</h3>
+    <pre><code>sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d api.yourdomain.com
+# Certbot edits your Nginx site to add SSL and sets up auto-renewal.
+sudo certbot renew --dry-run     # confirm renewal works</code></pre>
+
+    <h3>Docker path — host Nginx reverse proxy + SSL</h3>
+    <p>Put a host Nginx in front of the compose stack (which listens on <code>127.0.0.1:8000</code>):</p>
+    <pre><code>sudo apt install -y nginx certbot python3-certbot-nginx
+
+sudo tee /etc/nginx/sites-available/hrms >/dev/null &lt;&lt;'NGINX'
+server {
+    listen 80;
+    server_name api.yourdomain.com;
+    client_max_body_size 25m;
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+NGINX
+
+sudo ln -sf /etc/nginx/sites-available/hrms /etc/nginx/sites-enabled/hrms
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d api.yourdomain.com</code></pre>
+    <div class="callout note"><div class="t">Tell Laravel it's behind HTTPS</div>
+      Set <code>APP_URL=https://api.yourdomain.com</code> so generated URLs use HTTPS. The reverse
+      proxy passes <code>X-Forwarded-Proto</code> which Laravel's trusted-proxy handling respects.</div>
+
+    <h2 id="prod-env">12. Production <code>.env</code> reference</h2>
+    <p>The values that matter most for a secure, working production deploy:</p>
+    <pre><code>APP_NAME="HRMS SaaS"
+APP_ENV=production            # NOT local
+APP_DEBUG=false               # never leak stack traces in production
+APP_KEY=                      # set by: php artisan key:generate
+APP_URL=https://api.yourdomain.com
+
+# Database
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1             # or "postgres" for the Docker path
+DB_PORT=5432
+DB_DATABASE=hrms
+DB_USERNAME=hrms
+DB_PASSWORD=<strong-unique-password>
+
+# Cache / Queue / Sessions (Redis)
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+REDIS_HOST=127.0.0.1          # or "redis" for the Docker path
+REDIS_PASSWORD=null           # set a password if Redis is exposed
+
+# Auth (REQUIRED)
+JWT_SECRET=<openssl rand -hex 32>
+JWT_ACCESS_TTL=900
+JWT_REFRESH_TTL=1209600
+
+# First super-admin login (change from defaults!)
+SUPER_ADMIN_EMAIL=you@yourcompany.com
+SUPER_ADMIN_PASSWORD=<strong-password>
+
+# Mail (so password/notification emails actually send) — example SMTP
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.yourprovider.com
+MAIL_PORT=587
+MAIL_USERNAME=...
+MAIL_PASSWORD=...
+MAIL_FROM_ADDRESS="hello@yourdomain.com"
+
+# Billing — uses the built-in "manual" gateway until you add real keys.
+BILLING_DEFAULT_GATEWAY=manual
+# When you integrate a provider, set its keys and switch the gateway:
+# BILLING_DEFAULT_GATEWAY=razorpay
+# RAZORPAY_KEY_ID=...  RAZORPAY_KEY_SECRET=...  RAZORPAY_WEBHOOK_SECRET=...
+
+# Object storage (only needed once file uploads/exports are used)
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...  AWS_BUCKET=...  AWS_ENDPOINT=...</code></pre>
+    <div class="callout danger"><div class="t">Security must-dos</div>
+      <ul>
+        <li><b>Change</b> the default super-admin password (<code>password</code>) — set <code>SUPER_ADMIN_PASSWORD</code> before seeding, or change it after.</li>
+        <li>Use a unique, random <code>JWT_SECRET</code> and <code>DB_PASSWORD</code> per environment. Never commit <code>.env</code>.</li>
+        <li>Keep <code>APP_DEBUG=false</code>. Keep Postgres (5432) and Redis (6379) bound to localhost / private network — only 80/443 should be public.</li>
+        <li>Real payment gateways (Razorpay/Cashfree/PayU) are not yet implemented — the platform falls back to the manual/offline payment adapter until those are added.</li>
+      </ul>
+    </div>
+
+    <h2 id="golive">13. Go-live checklist</h2>
+    <ul>
+      <li>☐ DNS A record resolves to the server (<code>dig +short api.yourdomain.com</code>).</li>
+      <li>☐ <code>https://api.yourdomain.com/up</code> returns 200 over HTTPS (valid cert).</li>
+      <li>☐ <code>APP_ENV=production</code>, <code>APP_DEBUG=false</code>, strong <code>JWT_SECRET</code> &amp; <code>DB_PASSWORD</code> set.</li>
+      <li>☐ <code>php artisan migrate --force --seed</code> ran (plans, modules, roles, super admin exist).</li>
+      <li>☐ Super-admin password changed from the default.</li>
+      <li>☐ Queue worker running (Supervisor or <code>horizon</code> container) and scheduler active (cron or <code>scheduler</code> container).</li>
+      <li>☐ Config/route caches built (<code>config:cache</code>, <code>route:cache</code>).</li>
+      <li>☐ <code>storage/</code> + <code>bootstrap/cache</code> owned by <code>www-data</code>.</li>
+      <li>☐ Firewall allows only 22/80/443; DB &amp; Redis are private.</li>
+      <li>☐ The <a href="#verify">§4 smoke test</a> passes against the live domain.</li>
+      <li>☐ A database backup job is scheduled (§15).</li>
+    </ul>
+
+    <h2 id="redeploy">14. Updating &amp; redeploying a new version</h2>
+    <h4>Native</h4>
+    <pre><code>cd /var/www/HRM
+git pull origin main          # or your release branch
+cd backend
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache && php artisan route:cache && php artisan event:cache
+sudo supervisorctl restart hrms-worker:*   # restart workers to load new code
+sudo systemctl reload php8.4-fpm</code></pre>
+    <h4>Docker</h4>
+    <pre><code>cd /var/www/HRM
+git pull
+docker compose -f infra/docker-compose.yml up -d --build
+cd infra
+docker compose exec app composer install --no-dev --optimize-autoloader
+docker compose exec app php artisan migrate --force
+docker compose exec app php artisan config:cache
+docker compose restart app horizon scheduler</code></pre>
+    <div class="callout note"><div class="t">Zero-ish downtime</div>
+      Migrations in this project are additive. For risky schema changes use the expand→migrate→contract
+      pattern and never edit a migration that has already shipped — always add a new one.</div>
+
+    <h2 id="ops">15. Backups &amp; ongoing operations</h2>
+    <h4>Daily database backup (native)</h4>
+    <pre><code># Add to www-data crontab:
+0 2 * * * pg_dump -U hrms hrms | gzip > /var/backups/hrms-$(date +\%F).sql.gz</code></pre>
+    <h4>Daily database backup (Docker)</h4>
+    <pre><code>0 2 * * * cd /var/www/HRM/infra && docker compose exec -T postgres \
+  pg_dump -U hrms hrms | gzip > /var/backups/hrms-$(date +\%F).sql.gz</code></pre>
+    <h4>Restore</h4>
+    <pre><code># native
+gunzip -c /var/backups/hrms-2026-06-25.sql.gz | psql -U hrms hrms
+# docker
+gunzip -c /var/backups/hrms-2026-06-25.sql.gz | docker compose exec -T postgres psql -U hrms hrms</code></pre>
+    <h4>Where to look when something's wrong</h4>
+    <ul>
+      <li>App logs: <code>backend/storage/logs/laravel.log</code> (native) · <code>docker compose logs -f app</code> (Docker).</li>
+      <li>Queue health: <code>sudo supervisorctl status</code> · failed jobs in the <code>failed_jobs</code> table (<code>php artisan queue:failed</code>).</li>
+      <li>Web/proxy: <code>/var/log/nginx/error.log</code>; PHP-FPM: <code>/var/log/php8.4-fpm.log</code>.</li>
+      <li>Quick env sanity: <code>php artisan about</code>.</li>
+    </ul>
+    <p>For deeper operational detail (monitoring, performance tuning, disaster recovery, scaling) see
+    the <b>Technical Handbook</b> (<code>documentation.html</code>, §13–§22).</p>
+
+    <div class="footer">
+      <p><b>HRMS SaaS — End-to-End Setup &amp; Run Guide.</b> Localhost (Docker + native) and VPS
+      (Docker + native) bring-up, generated from this repository's actual <code>infra/</code> and
+      <code>.env.example</code>. Companion documents: <code>documentation.html</code> (Technical
+      Handbook) and <code>business-documentation.html</code> (Business Guide).</p>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function onScroll(){
+    var pos = window.scrollY + 120, current = null;
+    sections.forEach(function(s){ if(s.offsetTop <= pos) current = s; });
+    links.forEach(function(a){ a.classList.toggle('active', current && a.getAttribute('href') === '#'+current.id); });
+  }
+  window.addEventListener('scroll', onScroll); onScroll();
+})();
+</script>
+</body>
+</html>

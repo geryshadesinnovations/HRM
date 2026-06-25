@@ -135,6 +135,7 @@
       <a href="#auth">7. Authentication (JWT)</a>
       <a href="#api">8. API reference</a>
       <div class="group">Run It Locally</div>
+      <a href="setup-guide.html">★ Full Setup &amp; Run Guide</a>
       <a href="#prereqs">9. Dev environment setup</a>
       <a href="#install">10. Project installation</a>
       <div class="group">Ship It</div>
@@ -720,6 +721,15 @@ JWT_ALGO=HS256</code></pre>
 
 
     <h2 class="anchor" id="prereqs">9. Development environment setup (from a brand-new computer)</h2>
+    <div class="callout ok">
+      <div class="t">★ Looking for the complete copy-paste runbook?</div>
+      See <a href="setup-guide.html"><b>setup-guide.html</b> — the End-to-End Setup &amp; Run Guide</a>.
+      It covers, step by step: the technology stack, running on localhost via <b>Docker</b> or a
+      <b>native install</b> (Ubuntu/WSL/macOS/Windows), an HTTP <b>smoke test that proves the app
+      works</b>, and full <b>VPS deployment</b> (Docker or native) with Nginx, SSL, Supervisor, the
+      production <code>.env</code>, a go-live checklist, and backups. Sections 9–18 below are the
+      reference detail behind that guide.
+    </div>
     <p>You need: <b>PHP 8.4</b> (with <code>pdo_pgsql</code>, <code>redis</code>, <code>intl</code>, <code>bcmath</code>, <code>zip</code>,
     <code>opcache</code>), <b>Composer 2</b>, <b>Node.js 20+</b> &amp; <b>npm</b> (for the Vite asset build),
     <b>PostgreSQL 16</b>, <b>Redis 7</b>, <b>Git</b>, and optionally <b>Docker</b>. The single fastest path is
