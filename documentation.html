@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRMS SaaS — Technical Handbook</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#11161d; --panel2:#161c24; --border:#232b36;
+    --text:#d6dde6; --muted:#8b97a6; --accent:#4f8cff; --accent2:#22c55e;
+    --warn:#f59e0b; --danger:#ef4444; --code-bg:#0a0e14; --code-text:#c9d4e0;
+    --pill-built:#15351f; --pill-built-t:#4ade80; --pill-plan:#3a2c12; --pill-plan-t:#fbbf24;
+    --pill-part:#13314a; --pill-part-t:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.65;font-size:15.5px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:"SF Mono", "JetBrains Mono",Menlo,Consolas,monospace;font-size:0.86em;
+    background:#1c2530;padding:2px 6px;border-radius:5px;color:#9ecbff}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 18px;
+    overflow-x:auto;font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;
+    line-height:1.55;color:var(--code-text)}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+
+  /* Layout */
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:312px;background:var(--panel);border-right:1px solid var(--border);
+    position:fixed;top:0;left:0;height:100vh;overflow-y:auto;padding:0 0 40px}
+  .sidebar-head{padding:22px 22px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:5}
+  .brand{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .brand-sub{font-size:11.5px;color:var(--muted);margin-top:4px;letter-spacing:.3px;text-transform:uppercase}
+  .search{margin:14px 22px 6px;position:sticky;top:78px;z-index:4}
+  .search input{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);
+    background:var(--code-bg);color:var(--text);font-size:13.5px;outline:none}
+  .search input:focus{border-color:var(--accent)}
+  nav{padding:8px 12px}
+  nav .group{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+    padding:16px 10px 6px;font-weight:700}
+  nav a{display:block;padding:6px 10px;border-radius:7px;color:var(--text);font-size:13.6px;margin:1px 0}
+  nav a:hover{background:var(--panel2);text-decoration:none}
+  nav a.active{background:#1b2a44;color:#cfe0ff}
+
+  .content{margin-left:312px;flex:1;max-width:1000px;padding:36px 52px 120px}
+  @media(max-width:1100px){.content{padding:28px 26px 100px}}
+  @media(max-width:900px){.sidebar{display:none}.content{margin-left:0}}
+
+  h1{font-size:30px;font-weight:800;color:#fff;margin:8px 0 6px;letter-spacing:-.4px}
+  h2{font-size:23px;font-weight:700;color:#fff;margin:46px 0 10px;padding-top:14px;border-top:1px solid var(--border);letter-spacing:-.2px}
+  h3{font-size:18px;font-weight:700;color:#eaf0f7;margin:28px 0 8px}
+  h4{font-size:15px;font-weight:700;color:#cfd8e3;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.4px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+
+  .hero{background:linear-gradient(135deg,#15203a,#11161d);border:1px solid var(--border);
+    border-radius:16px;padding:30px 32px;margin-bottom:10px}
+  .hero h1{margin-top:0}
+  .hero p{color:var(--muted);font-size:16px;max-width:760px}
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .meta-chip{background:var(--code-bg);border:1px solid var(--border);
+    border-radius:8px;padding:7px 13px;font-size:12.5px;color:var(--muted)}
+  .meta-chip b{color:var(--text)}
+
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.6px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#fff;font-weight:600}
+  tr:nth-child(even) td{background:#0f141b}
+
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;
+    letter-spacing:.3px;vertical-align:middle}
+  .pill.built{background:var(--pill-built);color:var(--pill-built-t);border:1px solid #1f5130}
+  .pill.plan{background:var(--pill-plan);color:var(--pill-plan-t);border:1px solid #5a4317}
+  .pill.part{background:var(--pill-part);color:var(--pill-part-t);border:1px solid #1d4a72}
+
+  .callout{border-radius:10px;padding:14px 18px;margin:16px 0;border:1px solid var(--border);background:var(--panel2)}
+  .callout.note{border-left:4px solid var(--accent)}
+  .callout.warn{border-left:4px solid var(--warn)}
+  .callout.danger{border-left:4px solid var(--danger)}
+  .callout.ok{border-left:4px solid var(--accent2)}
+  .callout .t{font-weight:700;color:#fff;margin-bottom:4px}
+
+  .diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:18px;
+    overflow-x:auto;margin:16px 0}
+  .diagram pre{border:none;background:none;padding:0;color:#9fd0ff;font-size:12.5px;line-height:1.45}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:14px;margin:16px 0}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .card h4{margin:0 0 6px;color:var(--accent);text-transform:none;letter-spacing:0;font-size:14.5px}
+  .card p{margin:0;font-size:13.3px;color:var(--muted)}
+
+  .endpoint{display:flex;align-items:center;gap:10px;font-family:"SF Mono",monospace;font-size:13px;
+    background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin:6px 0}
+  .verb{font-weight:700;padding:2px 8px;border-radius:5px;font-size:11.5px;min-width:54px;text-align:center}
+  .verb.get{background:#13314a;color:#60a5fa}
+  .verb.post{background:#15351f;color:#4ade80}
+  .verb.patch,.verb.put{background:#3a2c12;color:#fbbf24}
+  .verb.del{background:#3a1518;color:#f87171}
+
+  .toc-mini{columns:2;column-gap:24px;font-size:13.5px;margin:10px 0}
+  .footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:12.5px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 0;font-size:12.5px;color:var(--muted)}
+  .anchor{scroll-margin-top:20px}
+  .kbd{background:#1c2530;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 7px;font-size:12px;font-family:monospace}
+  .hl{color:#ffd479}
+  .filehit{color:#7ee787}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand"><span class="dot"></span> HRMS SaaS</div>
+      <div class="brand-sub">Technical Handbook</div>
+    </div>
+    <div class="search"><input id="navSearch" type="text" placeholder="Search the handbook…" autocomplete="off"></div>
+    <nav id="nav">
+      <div class="group">Start Here</div>
+      <a href="#intro">0. How to read this</a>
+      <a href="#status">0.1 Implementation status</a>
+      <a href="#understanding">1. Project understanding</a>
+      <div class="group">Architecture</div>
+      <a href="#architecture">2. Technical architecture</a>
+      <a href="#layers">2.1 Layers &amp; communication</a>
+      <a href="#requestflow">2.2 Request flow</a>
+      <a href="#structure">3. Project structure</a>
+      <div class="group">Data &amp; API</div>
+      <a href="#database">4. Database</a>
+      <a href="#tenancy">4.1 Tenant isolation</a>
+      <a href="#subscription">5. Subscription engine</a>
+      <a href="#rbac">6. RBAC</a>
+      <a href="#auth">7. Authentication (JWT)</a>
+      <a href="#api">8. API reference</a>
+      <div class="group">Run It Locally</div>
+      <a href="#prereqs">9. Dev environment setup</a>
+      <a href="#install">10. Project installation</a>
+      <div class="group">Ship It</div>
+      <a href="#deploy">11. Production deployment</a>
+      <a href="#nginx">12. Nginx</a>
+      <a href="#postgres">13. PostgreSQL</a>
+      <a href="#redis">14. Redis</a>
+      <a href="#queue">15. Queues</a>
+      <a href="#scheduler">16. Scheduler</a>
+      <a href="#docker">17. Docker</a>
+      <a href="#cicd">18. CI/CD</a>
+      <div class="group">Operate &amp; Extend</div>
+      <a href="#modify">19. How to modify (impact maps)</a>
+      <a href="#troubleshooting">20. Troubleshooting</a>
+      <a href="#monitoring">21. Monitoring &amp; maintenance</a>
+      <a href="#backup">22. Backup &amp; recovery</a>
+      <a href="#future">23. Future expansion</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <section class="hero anchor" id="intro">
+      <h1>HRMS SaaS — Technical Handbook</h1>
+      <p>A complete knowledge-transfer document for engineers and DevOps taking over the
+      multi-tenant, subscription-driven Human Resource Management platform. Everything here is
+      derived from the <b>actual code</b> in this repository, not a generic template.</p>
+      <div class="meta-row">
+        <div class="meta-chip"><b>Backend:</b> Laravel 12 · PHP 8.4</div>
+        <div class="meta-chip"><b>DB:</b> PostgreSQL 16</div>
+        <div class="meta-chip"><b>Cache/Queue:</b> Redis 7</div>
+        <div class="meta-chip"><b>Auth:</b> JWT (access + rotating refresh)</div>
+        <div class="meta-chip"><b>Repo:</b> geryshadesinnovations/HRM</div>
+        <div class="meta-chip"><b>Branch:</b> feat/foundation-architecture-and-spine</div>
+      </div>
+    </section>
+
+    <div class="callout note">
+      <div class="t">Read this first — what state is the project in?</div>
+      This repository is the <b>foundation + platform spine</b> of the platform. The
+      multi-tenant core, JWT identity, RBAC, and the subscription engine are <b>fully implemented and tested</b>.
+      The business modules (Attendance, Leave, Payroll), the billing gateway adapters, and the
+      Next.js frontend are <b>designed but not yet coded</b>. Throughout this handbook, every feature is
+      tagged so a new team knows exactly what exists today:
+      <div class="legend">
+        <span><span class="pill built">BUILT</span> implemented &amp; in the codebase</span>
+        <span><span class="pill part">PARTIAL</span> scaffolding/data present, logic pending</span>
+        <span><span class="pill plan">PLANNED</span> specified in <code>docs/</code>, not yet coded</span>
+      </div>
+    </div>
+
+    <h2 class="anchor" id="status">0.1 Implementation status matrix</h2>
+    <p>The single most important table for a new owner. It maps the documented vision to what
+    is actually present in <code>backend/app</code>, <code>database/</code>, and <code>infra/</code> today.</p>
+    <table>
+      <thead><tr><th>Capability</th><th>Status</th><th>Where it lives in the code</th></tr></thead>
+      <tbody>
+        <tr><td>Multi-tenancy (row-level isolation, global scope, fail-closed)</td><td><span class="pill built">BUILT</span></td><td><code>app/Platform/Tenancy/*</code></td></tr>
+        <tr><td>JWT auth: login, refresh-rotation, reuse detection, logout</td><td><span class="pill built">BUILT</span></td><td><code>app/Platform/Auth/*</code>, <code>Domains/Identity/Services/AuthService.php</code></td></tr>
+        <tr><td>Company self-signup + trial subscription</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Identity/Services/CompanyRegistrationService.php</code></td></tr>
+        <tr><td>Subscription engine + entitlement resolution + Redis cache</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Subscription/Services/*</code></td></tr>
+        <tr><td>Feature Access gate (module / feature / seat / payroll)</td><td><span class="pill built">BUILT</span></td><td><code>FeatureAccessService.php</code>, middleware <code>EnsureModuleAccess</code>/<code>EnsureFeatureAccess</code></td></tr>
+        <tr><td>RBAC: 5 roles, ~30 permissions (Spatie)</td><td><span class="pill built">BUILT</span></td><td><code>database/seeders/RolePermissionSeeder.php</code></td></tr>
+        <tr><td>Standard API envelope + error codes</td><td><span class="pill built">BUILT</span></td><td><code>app/Platform/Http/ApiResponse.php</code>, <code>Support/ErrorCode.php</code></td></tr>
+        <tr><td>Auth API endpoints (register/login/refresh/logout/me/entitlements)</td><td><span class="pill built">BUILT</span></td><td><code>routes/api.php</code>, <code>Http/Controllers/Api/V1/AuthController.php</code></td></tr>
+        <tr><td>Core HR tables (companies, employees, departments, designations)</td><td><span class="pill part">PARTIAL</span></td><td>migrations + <code>Employee</code>/<code>Company</code> models only; no CRUD services/controllers yet</td></tr>
+        <tr><td>Module catalog seeded (attendance, leave, payroll, +4)</td><td><span class="pill part">PARTIAL</span></td><td><code>ModuleSeeder.php</code> — sellable metadata exists, domain logic does not</td></tr>
+        <tr><td>Attendance / Leave / Payroll business logic + tables</td><td><span class="pill plan">PLANNED</span></td><td>specced in <code>docs/06-MODULES.md</code> (Phase 3–4)</td></tr>
+        <tr><td>Billing engine, gateway adapters, invoices, webhooks</td><td><span class="pill plan">PLANNED</span></td><td>config only (<code>config/billing.php</code>); see <code>docs/04-BILLING.md</code> (Phase 2)</td></tr>
+        <tr><td>Subscription lifecycle jobs (sweep / renew / dunning)</td><td><span class="pill plan">PLANNED</span></td><td>scheduler container runs, no tasks registered yet</td></tr>
+        <tr><td>Next.js frontend (3 personas, command palette)</td><td><span class="pill plan">PLANNED</span></td><td>specced in <code>docs/10-FRONTEND-UX.md</code> (Phase 5)</td></tr>
+        <tr><td>Reporting engine, notifications, MFA, audit logs</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code>, <code>docs/09</code> (Phase 6)</td></tr>
+        <tr><td>Infra: docker-compose, PHP-FPM image, Nginx, CI</td><td><span class="pill built">BUILT</span></td><td><code>infra/</code>, <code>.github/workflows/ci.yml</code></td></tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      <div class="t">Why the foundation matters</div>
+      The "hard" architectural decisions — tenant isolation that cannot be bypassed by accident, an
+      entitlement engine with zero hardcoded plan logic, and a clean service layering — are already
+      in place and covered by tests. Building the remaining modules is now <b>additive</b> work that
+      follows the patterns documented here.
+    </div>
+
+
+    <h2 class="anchor" id="understanding">1. Project understanding (in business language)</h2>
+    <p><b>What the platform is.</b> A commercial HRMS (Human Resource Management System) sold as
+    SaaS. Many separate companies ("tenants") sign up and use the same software over the internet.
+    Each company manages its own employees, attendance, leave and payroll. Every company's data is
+    walled off from every other company's data.</p>
+
+    <p><b>Why it exists / problems it solves.</b> Small and mid-sized companies normally juggle HR
+    across spreadsheets, WhatsApp messages, and manual salary calculations. This platform replaces
+    that with one system where attendance, leave, and payroll connect automatically — and the vendor
+    (you) earns recurring monthly revenue per company.</p>
+
+    <div class="cards">
+      <div class="card"><h4>SaaS business model</h4><p>Companies pay a recurring fee. Price = a base plan (which includes a number of employee "seats") + extra seats + optional module add-ons.</p></div>
+      <div class="card"><h4>Subscriptions</h4><p>Each company has exactly one live subscription tied to a plan. It moves through states: trial → active → grace → expired/suspended/cancelled. Access is gated by state; <b>data is never deleted</b>.</p></div>
+      <div class="card"><h4>Modules</h4><p>Capabilities (Attendance, Payroll, Leave…) are database records, not hardcoded. A plan grants a set of modules. Selling a new module needs no redeploy.</p></div>
+      <div class="card"><h4>Billing <span class="pill plan">PLANNED</span></h4><p>Designed as a gateway-agnostic layer (Razorpay/Cashfree/PayU) driven by webhooks, with GST-aware invoices. Currently configuration only.</p></div>
+      <div class="card"><h4>Attendance <span class="pill plan">PLANNED</span></h4><p>HR-marked or employee self check-in/out, working hours, overtime. Module is sellable today; logic lands in Phase 3.</p></div>
+      <div class="card"><h4>Payroll <span class="pill plan">PLANNED</span></h4><p>Salary structures → monthly payroll runs → payslips, consuming attendance/leave when licensed.</p></div>
+      <div class="card"><h4>Multi-tenancy</h4><p>One database, one schema. Every business row carries a <code>company_id</code>. A global query filter makes cross-company access impossible by default.</p></div>
+    </div>
+
+    <h2 class="anchor" id="architecture">2. Technical architecture</h2>
+    <p>The backend is a <b>Laravel 12 REST API</b>. It is layered so dependencies only point one
+    direction, and every cross-cutting concern (tenancy, entitlements, auth) lives in a dedicated
+    <code>Platform</code> namespace. The intended frontend is a Next.js SPA (planned); today the API
+    is the whole product.</p>
+
+    <h3 id="layers">2.1 The layers and how they communicate</h3>
+    <div class="diagram"><pre>
+Browser / API client
+   │  HTTPS, Authorization: Bearer &lt;JWT access token&gt;
+   ▼
+┌──────────────────────────────────────────────────────────────┐
+│ HTTP layer   routes/api.php → Controller + FormRequest         │
+│              validates input, shapes the JSON envelope         │
+└───────────────┬────────────────────────────────────────────────┘
+                │ (no business logic here)
+                ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Service layer   App\Domains\*\Services                          │
+│   AuthService, CompanyRegistrationService, SubscriptionEngine,  │
+│   FeatureAccessService — business rules, DB transactions        │
+└───────────────┬────────────────────────────────────────────────┘
+                │ uses
+                ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Models (tenant-aware Eloquent)  →  PostgreSQL                   │
+│   Company, User, Employee, Plan, Module, Feature, Subscription  │
+└──────────────────────────────────────────────────────────────┘
+
+Cross-cutting (App\Platform):
+  Tenancy  → TenantContext, BelongsToTenant scope, ResolveTenant middleware
+  Auth     → JwtGuard, JwtService, RefreshToken
+  Http     → ApiResponse envelope
+  Support  → ErrorCode enum, ApiException
+Cache/Queue → Redis      Async → queue workers (Horizon-ready)
+    </pre></div>
+
+    <table>
+      <thead><tr><th>Layer</th><th>Responsibility</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>Next.js SPA for Super Admin / Company / Employee personas; mirrors entitlements to hide UI. Backend stays authoritative.</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Backend (API)</td><td>Laravel 12 REST, layered HTTP→Service→Model. Stateless (JWT), so it scales horizontally.</td><td><span class="pill built">BUILT</span></td></tr>
+        <tr><td>Database</td><td>PostgreSQL 16, single shared schema, row-level tenant isolation by <code>company_id</code>.</td><td><span class="pill built">BUILT</span></td></tr>
+        <tr><td>Cache</td><td>Redis. Used for entitlement caching (1h TTL, see <code>SubscriptionEngine</code>) and as cache/session store.</td><td><span class="pill built">BUILT</span></td></tr>
+        <tr><td>Queue</td><td>Redis-backed queue; <code>horizon</code> worker container runs <code>queue:work</code>. Jobs (payroll, exports) land later.</td><td><span class="pill part">PARTIAL</span></td></tr>
+        <tr><td>Storage</td><td>S3 / Cloudflare R2 compatible (config in <code>.env</code>: <code>FILESYSTEM_DISK=s3</code>). Used by documents/exports later.</td><td><span class="pill part">PARTIAL</span></td></tr>
+        <tr><td>Notification</td><td>Event → dispatcher → per-channel queued job (in-app/email/SMS).</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Subscription</td><td>Engine resolves entitlements from plan + overrides, gated by status. Central to everything.</td><td><span class="pill built">BUILT</span></td></tr>
+        <tr><td>Billing</td><td>Gateway-agnostic, webhook-driven, GST invoices.</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>RBAC</td><td>Spatie roles/permissions on the <code>api</code> guard; deny-by-default.</td><td><span class="pill built">BUILT</span></td></tr>
+        <tr><td>API</td><td>Versioned under <code>/api/v1</code>; standard success/error envelopes.</td><td><span class="pill built">BUILT</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="requestflow">2.2 Request flow: from browser to database</h3>
+    <p>This is the exact lifecycle of an authenticated, tenant-scoped, subscription-gated request,
+    using a hypothetical <code>module:payroll</code> route as the example. Steps 1–6 are wired today;
+    the payroll handler itself is planned.</p>
+    <div class="diagram"><pre>
+1. Client sends  POST /api/v1/payroll/runs   with  Authorization: Bearer &lt;access&gt;
+
+2. auth:api guard  (App\Platform\Auth\JwtGuard)
+   • reads the Bearer token, JwtService::decode() verifies signature + "typ":"access"
+   • loads the User by the token "sub" claim → request->user()
+
+3. tenant middleware  (ResolveTenant)
+   • reads user->company_id → TenantContext::setCompanyId()
+   • Super Admin (company_id = null) passes through tenant-less
+
+4. permission:payroll.run.execute  (Spatie PermissionMiddleware)
+   • checks the user's roles grant the permission, else 403 FORBIDDEN
+
+5. module:payroll  (EnsureModuleAccess)
+   • FeatureAccessService->assert('module:payroll')
+   • SubscriptionEngine resolves entitlement (cached in Redis)
+   • if plan lacks payroll OR status is blocked → 403 MODULE_NOT_LICENSED
+
+6. Controller → Service
+   • FormRequest validates body; Service runs inside DB::transaction
+   • Every tenant-aware Model query auto-adds WHERE company_id = &lt;current&gt;
+
+7. Response: ApiResponse::success(...) → { "data": {...}, "meta": {...} }
+    </pre></div>
+    <div class="callout note">
+      <div class="t">Two independent gates on every protected route</div>
+      <b>RBAC</b> answers "is this user <i>allowed</i> to do this?" and <b>Subscription</b> answers
+      "did this company <i>pay</i> for this?". Both must pass. They are separate middleware so they
+      can be reasoned about and tested independently.
+    </div>
+
+
+    <h2 class="anchor" id="structure">3. Project structure — folders, files &amp; relationships</h2>
+    <p>The repository has three top-level areas. Only <code>backend/</code> and <code>infra/</code>
+    contain code today; <code>docs/</code> holds the design blueprint that this handbook supersedes
+    for "what is actually built".</p>
+    <div class="diagram"><pre>
+HRM/
+├── docs/                 design blueprint (00–11 + ROADMAP) — the original spec
+├── backend/              Laravel 12 API  ← the whole product today
+├── infra/                Docker, Nginx, PHP-FPM image
+└── .github/workflows/    CI pipeline
+    </pre></div>
+
+    <h3>backend/app — the application core</h3>
+    <div class="diagram"><pre>
+backend/app/
+├── Domains/                 business contexts (DDD-style)
+│   ├── Company/Models/Company.php          tenant root entity
+│   ├── Employee/Models/Employee.php        tenant-owned, seat economics
+│   ├── Identity/Services/
+│   │   ├── AuthService.php                 login / refresh / logout
+│   │   └── CompanyRegistrationService.php  signup → company+admin+trial sub
+│   └── Subscription/
+│       ├── Contracts/FeatureAccess.php     the gate interface
+│       ├── Enums/SubscriptionStatus.php    trial|active|grace|expired|...
+│       ├── Models/{Plan,Module,Feature,Subscription}.php
+│       └── Services/
+│           ├── SubscriptionEngine.php      resolves entitlement (+Redis cache)
+│           ├── Entitlement.php             immutable resolved snapshot
+│           └── FeatureAccessService.php    enforces module/feature/seat gates
+├── Http/
+│   ├── Controllers/Api/V1/AuthController.php
+│   ├── Middleware/{ResolveTenant,EnsureModuleAccess,EnsureFeatureAccess}.php
+│   └── Requests/Auth/{LoginRequest,RegisterCompanyRequest}.php
+├── Models/User.php           platform+tenant user (Spatie HasRoles, JwtSubject)
+├── Platform/                 cross-cutting infrastructure
+│   ├── Auth/{JwtGuard,JwtService}.php  Auth/Models/RefreshToken.php
+│   ├── Concerns/HasUuid.php             public UUIDs + route binding
+│   ├── Exceptions/ApiException.php      renders standard error envelope
+│   ├── Http/ApiResponse.php             success/paginated/error helpers
+│   ├── Support/ErrorCode.php            canonical error code enum
+│   └── Tenancy/{TenantContext,BelongsToTenant}.php  Scopes/TenantScope.php
+└── Providers/PlatformServiceProvider.php  wires tenancy, JWT guard, engine
+    </pre></div>
+
+    <h3>Key files — what each does, when it runs, who depends on it</h3>
+    <table>
+      <thead><tr><th>File</th><th>Purpose &amp; when it executes</th><th>Depended on by</th></tr></thead>
+      <tbody>
+        <tr><td><code>bootstrap/app.php</code></td><td>App bootstrap. Registers middleware aliases (<code>tenant</code>, <code>module</code>, <code>feature</code>, <code>permission</code>, <code>role</code>), the <code>api/v1</code> prefix, and the global exception→envelope renderers. Runs on every request.</td><td>The entire HTTP stack</td></tr>
+        <tr><td><code>Providers/PlatformServiceProvider.php</code></td><td>Boots the platform spine: binds <code>TenantContext</code> (scoped per request), <code>JwtService</code> (singleton), <code>SubscriptionEngine</code> &amp; <code>FeatureAccess</code> (scoped), and registers the <code>jwt</code> auth driver. Runs at boot.</td><td>Auth guard, tenancy, all gating</td></tr>
+        <tr><td><code>Platform/Tenancy/TenantContext.php</code></td><td>Holds the active company id for the request/job. Offers <code>forCompany()</code> (impersonate) and <code>bypass()</code> (platform ops). Read by the global scope on every query.</td><td><code>TenantScope</code>, <code>BelongsToTenant</code>, services</td></tr>
+        <tr><td><code>Platform/Tenancy/Scopes/TenantScope.php</code></td><td>Global Eloquent scope. Adds <code>WHERE company_id=?</code>; if no tenant and not bypassed, forces <code>1=0</code> (<b>fail-closed</b>). Runs on every query of a tenant model.</td><td>Every model using <code>BelongsToTenant</code></td></tr>
+        <tr><td><code>Domains/Subscription/Services/SubscriptionEngine.php</code></td><td>Loads subscription+plan+overrides, applies status gate, returns an <code>Entitlement</code>. Caches per company keyed by <code>updated_at</code>. Runs on first entitlement check per request.</td><td><code>FeatureAccessService</code>, <code>AuthController::entitlements</code></td></tr>
+        <tr><td><code>Domains/Subscription/Services/FeatureAccessService.php</code></td><td>The single gate. <code>assert('module:x')</code>, <code>feature:x</code>, <code>seat</code>, <code>payroll</code>. Throws <code>ApiException</code> (403). Runs in gate middleware and inside services.</td><td>Module/Feature middleware, future module services</td></tr>
+        <tr><td><code>Platform/Auth/JwtGuard.php</code></td><td>Stateless guard for the <code>api</code> guard. Validates the Bearer access token, returns the authenticated user. Runs in <code>auth:api</code>.</td><td>All authenticated routes</td></tr>
+        <tr><td><code>Domains/Identity/Services/AuthService.php</code></td><td>Issues token pairs, persists hashed refresh tokens, rotates on refresh, detects reuse (revokes whole chain). Runs on login/refresh/logout.</td><td><code>AuthController</code></td></tr>
+        <tr><td><code>routes/api.php</code></td><td>Defines all v1 routes. Public auth routes + a <code>auth:api,tenant</code> protected group (<code>logout</code>, <code>me</code>, <code>me/entitlements</code>).</td><td>HTTP entrypoint</td></tr>
+        <tr><td><code>database/seeders/*</code></td><td>Seed canonical modules/features, default plans, roles/permissions, and the super admin. Run via <code>php artisan db:seed</code>.</td><td>Fresh installs, CI, tests</td></tr>
+      </tbody>
+    </table>
+
+
+    <h2 class="anchor" id="database">4. Database — every table explained</h2>
+    <p>PostgreSQL 16. The tables below are <b>exactly what the migrations create today</b>. Money is
+    stored as <code>BIGINT</code> minor units (paise), never floats. Public entities carry a unique
+    <code>uuid</code> so internal numeric ids stay out of URLs.</p>
+
+    <h3>ER diagram (current schema)</h3>
+    <div class="diagram"><pre>
+ PLATFORM (no company_id)
+   modules ──&lt; features
+   modules &gt;──&lt; plan_module &gt;──&lt; plans &gt;──&lt; plan_feature &gt;──&lt; features
+                                   │
+ companies ─1───&lt; subscriptions &gt;─┘   (subscription.plan_id → plans.id)
+   │
+   ├─1──&lt; users ──&lt; refresh_tokens
+   │        └──&lt; model_has_roles &gt;── roles ──&lt; role_has_permissions &gt;── permissions
+   │
+ CORE HR (company_id on every row)
+   companies ─1──&lt; departments ─1──&lt; designations
+   companies ─1──&lt; employees
+       employees.manager_id → employees.id   (self-reference)
+       employees.user_id    → users.id       (optional self-service login)
+    </pre></div>
+
+    <h3>Platform &amp; subscription tables <span class="pill built">BUILT</span></h3>
+    <table>
+      <thead><tr><th>Table</th><th>Why it exists / business use</th><th>Key columns, constraints &amp; indexes</th></tr></thead>
+      <tbody>
+        <tr><td><code>companies</code></td><td>The tenant. Root of the model graph; itself <b>not</b> tenant-scoped.</td><td><code>uuid</code> (unique), <code>slug</code> (unique), <code>status</code> (active|suspended|cancelled), <code>currency</code>, <code>timezone</code>, <code>gstin</code>, JSON <code>settings</code>; soft-deletes; index on <code>status</code>.</td></tr>
+        <tr><td><code>users</code></td><td>Login identity. Super Admins have <code>company_id = NULL</code>; everyone else belongs to one company.</td><td><code>email</code> (unique), <code>company_id</code> FK (nullOnDelete), <code>is_super_admin</code>, <code>uuid</code>; index on <code>company_id</code>.</td></tr>
+        <tr><td><code>refresh_tokens</code></td><td>Enables refresh-token rotation, revocation, and reuse detection. Tokens stored <b>hashed</b>; only the <code>jti</code> is indexed.</td><td><code>user_id</code> FK (cascade), <code>jti</code> (unique), <code>token_hash</code>, <code>expires_at</code>, <code>revoked_at</code>; index <code>(user_id, revoked_at)</code>.</td></tr>
+        <tr><td><code>modules</code></td><td>A sellable capability (attendance, payroll…). Dynamic — admin-creatable, no deploy needed.</td><td><code>code</code> (unique), <code>name</code>, <code>is_active</code>, <code>sort_order</code>.</td></tr>
+        <tr><td><code>features</code></td><td>A granular flag/limit inside a module (e.g. <code>payroll.bulk</code>, <code>employees.max</code>).</td><td><code>module_id</code> FK (nullable → cross-cutting features), <code>code</code> (unique), <code>type</code> (boolean|limit|quota).</td></tr>
+        <tr><td><code>plans</code></td><td>A priced bundle: base price + included seats + per-seat price + trial. Sold to companies.</td><td><code>code</code> (unique), <code>billing_cycle</code>, <code>base_price</code> (paise), <code>included_seats</code>, <code>per_seat_price</code>, <code>trial_days</code>, <code>is_public</code>, <code>is_active</code>; soft-deletes.</td></tr>
+        <tr><td><code>plan_module</code></td><td>Which modules a plan grants. Pure data — this is "configuration over code".</td><td>Composite PK <code>(plan_id, module_id)</code>, both cascade.</td></tr>
+        <tr><td><code>plan_feature</code></td><td>Feature values per plan (the limit/flag value).</td><td>Composite PK <code>(plan_id, feature_id)</code> + <code>value</code> string ('true'|'100'|'unlimited').</td></tr>
+        <tr><td><code>subscriptions</code></td><td>A company's live plan instance: status, seats, billing period, per-tenant <code>overrides</code> (add-ons). Tenant-owned.</td><td><code>company_id</code> FK (cascade), <code>plan_id</code> FK, <code>status</code>, <code>seats</code>, period timestamps, <code>auto_renew</code>, JSON <code>overrides</code>; indexes on <code>company_id</code> and <code>(status, current_period_end)</code> for expiry sweeps.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>RBAC tables <span class="pill built">BUILT</span> (Spatie schema)</h3>
+    <p><code>permissions</code>, <code>roles</code>, <code>model_has_roles</code>, <code>model_has_permissions</code>,
+    <code>role_has_permissions</code>. All on the <code>api</code> guard. A user's effective permissions =
+    union of their roles' permissions. See §6.</p>
+
+    <h3>Core HR tables <span class="pill part">PARTIAL</span> (schema present, logic pending)</h3>
+    <table>
+      <thead><tr><th>Table</th><th>Business use</th><th>Key columns &amp; constraints</th></tr></thead>
+      <tbody>
+        <tr><td><code>departments</code></td><td>Org structure within a company.</td><td><code>company_id</code> FK (cascade), <code>name</code>; soft-deletes; index <code>company_id</code>.</td></tr>
+        <tr><td><code>designations</code></td><td>Job titles, optionally under a department.</td><td><code>company_id</code>, <code>department_id</code> (nullOnDelete).</td></tr>
+        <tr><td><code>employees</code></td><td>The employee record. Drives <b>seat economics</b> (active count vs seat limit). Optionally linked to a login user.</td><td><code>uuid</code>, <code>company_id</code>, <code>user_id</code> (nullable), <code>employee_code</code>, <code>manager_id</code> (self-FK), <code>status</code> (active|on_leave|terminated); <b>unique <code>(company_id, employee_code)</code></b>; index <code>(company_id, status)</code>; soft-deletes.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout note"><div class="t">Planned tables (designed in docs/02, not yet migrated)</div>
+      <code>invoices</code>, <code>invoice_lines</code>, <code>payments</code>, <code>webhook_events</code> (billing);
+      <code>attendance_records</code> (monthly range-partitioned), <code>shifts</code>;
+      <code>leave_types</code>, <code>leave_policies</code>, <code>leave_balances</code>, <code>leave_requests</code>;
+      <code>salary_components</code>, <code>salary_structures</code>, <code>payroll_runs</code>, <code>payslips</code>;
+      <code>audit_logs</code>, <code>notifications</code>, <code>mfa_secrets</code>, <code>login_histories</code>.
+    </div>
+
+    <h3>Indexing &amp; performance strategy</h3>
+    <ul>
+      <li><b>Lead every tenant index with <code>company_id</code></b> — it is in almost every WHERE clause.</li>
+      <li>Composite indexes match access patterns: <code>employees(company_id,status)</code>, <code>subscriptions(status,current_period_end)</code> (drives the daily expiry sweep), <code>refresh_tokens(user_id,revoked_at)</code>.</li>
+      <li>Money as <code>BIGINT</code> minor units avoids float rounding bugs in payroll/billing.</li>
+      <li><b>Planned:</b> high-volume append tables (<code>attendance_records</code>, <code>audit_logs</code>, <code>notifications</code>) are range-partitioned by month so old partitions can be archived and indexes stay small.</li>
+    </ul>
+
+    <h3 id="tenancy">4.1 Tenant isolation strategy — the most important invariant</h3>
+    <p>Strategy: <b>single database, shared schema, row-level isolation by <code>company_id</code></b>.
+    Chosen over database-per-tenant because 10,000+ tenants on one Postgres cluster is operationally
+    sane and makes platform analytics simple. Isolation is enforced in three layers:</p>
+    <ol>
+      <li><b>Resolution</b> — <code>ResolveTenant</code> middleware reads <code>user->company_id</code> into <code>TenantContext</code>.</li>
+      <li><b>Auto-scope &amp; auto-fill</b> — the <code>BelongsToTenant</code> trait adds <code>TenantScope</code> (auto <code>WHERE company_id=?</code> on reads) and auto-fills <code>company_id</code> on insert. Developers <i>cannot forget</i> the filter.</li>
+      <li><b>Fail-closed</b> — if there is no tenant and no explicit <code>bypass()</code>, the scope adds <code>WHERE 1=0</code>, returning nothing rather than leaking everything.</li>
+    </ol>
+    <div class="callout ok"><div class="t">Proven by tests</div>
+      <code>tests/Feature/TenantIsolationTest.php</code> seeds two companies and asserts: (a) each only
+      sees its own rows, (b) <code>company_id</code> is auto-filled on create, and (c) queries with no
+      tenant return zero rows. This runs in CI on every push.</div>
+    <pre><code>// Any tenant-aware model query is automatically scoped:
+Employee::count();   // SELECT count(*) FROM employees WHERE company_id = &lt;current&gt;
+
+// Platform/super-admin code opts out explicitly:
+$tenant->bypass(fn () =&gt; Subscription::where('company_id', $id)-&gt;first());</code></pre>
+
+
+    <h2 class="anchor" id="subscription">5. Subscription engine <span class="pill built">BUILT</span></h2>
+    <p>The spine of the platform. Every module/feature/seat decision flows through one engine, and
+    there is <b>no hardcoded plan logic anywhere</b> — entitlements are computed from database records.</p>
+
+    <h3>Core concepts</h3>
+    <table>
+      <thead><tr><th>Concept</th><th>Meaning</th><th>Code</th></tr></thead>
+      <tbody>
+        <tr><td>Module</td><td>A sellable capability. Dynamic DB record.</td><td><code>Models/Module.php</code></td></tr>
+        <tr><td>Feature</td><td>A flag/limit within a module (<code>payroll.bulk</code>, <code>employees.max</code>).</td><td><code>Models/Feature.php</code></td></tr>
+        <tr><td>Plan</td><td>Priced bundle of modules + feature values + seat economics.</td><td><code>Models/Plan.php</code></td></tr>
+        <tr><td>Subscription</td><td>A company's live plan instance with status, period, seats, overrides.</td><td><code>Models/Subscription.php</code></td></tr>
+        <tr><td>Entitlement</td><td>The <i>resolved</i> set of modules + feature values for a company right now.</td><td><code>Services/Entitlement.php</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>How an entitlement is resolved</h3>
+    <div class="diagram"><pre>
+Entitlement(company) =
+    Plan.modules  ∪  Plan.features          (base bundle from plan_module / plan_feature)
+    ⊕ Subscription.overrides                (per-tenant add: {modules:{add,remove}, features:{code:value}})
+    ⊗ SubscriptionStatus gate               (trial/active/grace ⇒ access; expired/suspended/cancelled ⇒ NONE)
+    </pre></div>
+    <p><code>SubscriptionEngine::forCurrentTenant()</code> loads the latest subscription (with plan,
+    modules, features) <i>bypassing</i> the tenant scope, then caches the resolved <code>Entitlement</code>
+    in Redis under <code>entitlement:&lt;companyId&gt;:&lt;subscription.updated_at&gt;</code> for 1 hour. Because the
+    cache key includes <code>updated_at</code>, any change to the subscription naturally produces a new key
+    (effective invalidation).</p>
+
+    <h3>The gate — <code>FeatureAccessService</code></h3>
+    <pre><code>interface FeatureAccess {
+    canAccessModule(string $moduleCode): bool;
+    canUseFeature(string $featureCode): bool;     // boolean features
+    featureLimit(string $featureCode): ?int;      // null = unlimited
+    canAddEmployee(int $count = 1): bool;          // seat check
+    canRunPayroll(): bool;                          // module + status
+    assert(string $ability, mixed $context = null): void; // throws 403
+}</code></pre>
+    <ul>
+      <li><b>Seat math</b> (<code>canAddEmployee</code>): compares active employee count vs <code>seatLimit()</code> = <code>employees.max</code> feature if set, else <code>included_seats + purchasedSeats</code>. Over-limit → <code>403 SEAT_LIMIT_REACHED</code>.</li>
+      <li>All checks <b>short-circuit to deny</b> when status is expired/suspended/cancelled (<code>accessGranted = false</code>).</li>
+      <li>Employee count is read via a raw guarded query so the service has no hard dependency on the Employee model in early phases.</li>
+    </ul>
+
+    <h3>Enforcement points</h3>
+    <ol>
+      <li><b>Middleware</b>: <code>module:payroll</code> / <code>feature:payroll.bulk</code> on route groups (<code>EnsureModuleAccess</code>/<code>EnsureFeatureAccess</code>).</li>
+      <li><b>Service layer</b>: <code>featureAccess->assert(...)</code> before any mutating action.</li>
+      <li><b>Frontend (planned)</b>: mirrors entitlements from <code>GET /me/entitlements</code> to hide/disable UI — backend remains authoritative.</li>
+    </ol>
+
+    <h3>Lifecycle states — <code>SubscriptionStatus</code> enum</h3>
+    <table>
+      <thead><tr><th>Status</th><th>Module access</th><th>Data</th><th><code>grantsAccess()</code></th></tr></thead>
+      <tbody>
+        <tr><td>trial</td><td>full (per plan)</td><td>live</td><td>true</td></tr>
+        <tr><td>active</td><td>full</td><td>live</td><td>true</td></tr>
+        <tr><td>grace</td><td>full</td><td>live</td><td>true</td></tr>
+        <tr><td>expired</td><td><b>disabled</b></td><td>preserved</td><td>false</td></tr>
+        <tr><td>suspended</td><td><b>disabled</b></td><td>preserved</td><td>false</td></tr>
+        <tr><td>cancelled</td><td><b>disabled</b></td><td>preserved</td><td>false</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><div class="t">Lifecycle transitions are PLANNED</div>
+      The status enum and gate are built. The scheduled jobs that <i>move</i> a subscription between
+      states (trial→expired, active→grace→expired, dunning/renewal) are designed in
+      <code>docs/03</code> but not yet implemented — the <code>scheduler</code> container runs but no tasks are
+      registered. Today, a status changes only when set directly (e.g. signup sets <code>trial</code>/<code>active</code>).</div>
+
+    <h3>Seeded plans (from <code>PlanSeeder.php</code>)</h3>
+    <table>
+      <thead><tr><th>Plan</th><th>Price (₹/mo)</th><th>Seats</th><th>Per-seat</th><th>Trial</th><th>Modules granted</th></tr></thead>
+      <tbody>
+        <tr><td>Starter</td><td>999</td><td>25</td><td>₹20</td><td>14d</td><td>attendance, leave</td></tr>
+        <tr><td>Growth</td><td>2,999</td><td>100</td><td>₹30</td><td>14d</td><td>attendance, leave, payroll</td></tr>
+        <tr><td>Enterprise</td><td>9,999</td><td>500</td><td>₹25</td><td>30d</td><td>all 7 modules + <code>employees.max=unlimited</code></td></tr>
+      </tbody>
+    </table>
+    <p class="legend">Prices stored in paise: 99900, 299900, 999900. The <code>SubscriptionGatingTest</code>
+    verifies Starter grants attendance but not payroll, Growth grants payroll, and seat limits derive from the plan.</p>
+
+    <h2 class="anchor" id="rbac">6. RBAC <span class="pill built">BUILT</span></h2>
+    <p>Permissions are database-driven (Spatie), all on the <code>api</code> guard, deny-by-default.
+    A user's effective permissions are intersected conceptually with licensed modules (you cannot use
+    a payroll permission if payroll isn't subscribed — enforced by the separate module gate).</p>
+
+    <h3>Built-in roles &amp; what they can do</h3>
+    <table>
+      <thead><tr><th>Role</th><th>Scope</th><th>Summary of granted permissions</th></tr></thead>
+      <tbody>
+        <tr><td>Super Admin</td><td>Platform (no tenant)</td><td><b>All</b> permissions (<code>platform.*</code> + everything). Manages companies, plans, modules, billing, audit.</td></tr>
+        <tr><td>Company Admin</td><td>Tenant</td><td>Company settings, subscription, billing, roles, audit; full employee/attendance/leave/payroll permissions.</td></tr>
+        <tr><td>HR Manager</td><td>Tenant</td><td>Employees, attendance, leave, payroll runs — but <b>not</b> billing/subscription/company settings.</td></tr>
+        <tr><td>Manager</td><td>Tenant, team</td><td>View profiles, self-attendance, view attendance, request &amp; <b>approve</b> leave, view own payslip.</td></tr>
+        <tr><td>Employee</td><td>Tenant, self</td><td>View own profile, self-attendance, request leave, view own payslip.</td></tr>
+      </tbody>
+    </table>
+    <p>Permission codes follow <code>domain.resource.action</code>, e.g. <code>payroll.run.execute</code>,
+    <code>employee.profile.update</code>, <code>leave.request.approve</code>. The full ~30-permission list and
+    role→permission mapping live in <code>RolePermissionSeeder.php</code>.</p>
+    <pre><code>// Intended route-level enforcement (combine RBAC + subscription):
+Route::middleware(['auth:api','tenant','permission:payroll.run.execute','module:payroll'])
+     -&gt;post('/payroll/runs', [PayrollRunController::class,'store']);</code></pre>
+
+    <h2 class="anchor" id="auth">7. Authentication — JWT access + rotating refresh <span class="pill built">BUILT</span></h2>
+    <ul>
+      <li><b>Access token</b>: short-lived (default 900s / 15 min), HS256, carries claims <code>sub</code>, <code>company_id</code>, <code>sa</code> (super-admin), <code>typ:"access"</code>.</li>
+      <li><b>Refresh token</b>: long-lived (default 14 days), <code>typ:"refresh"</code> with a <code>jti</code>. A <code>refresh_tokens</code> row stores the hash, device, ip.</li>
+      <li><b>Rotation</b>: <code>AuthService::refresh()</code> validates, revokes the old token, issues a new pair inside a transaction.</li>
+      <li><b>Reuse detection</b>: if a refresh token that is already revoked is presented, the <b>entire chain</b> for that user is revoked defensively → forces re-login.</li>
+      <li><b>Guard</b>: <code>JwtGuard</code> implements the <code>api</code> guard; it reads the Bearer token and rejects non-access tokens.</li>
+    </ul>
+    <pre><code># config/jwt.php (env-driven)
+JWT_SECRET=...            # required (32+ chars)
+JWT_ACCESS_TTL=900        # seconds
+JWT_REFRESH_TTL=1209600   # 14 days
+JWT_ALGO=HS256</code></pre>
+    <div class="callout danger"><div class="t">Security must-dos for the new team</div>
+      Set a strong, unique <code>JWT_SECRET</code> per environment (never commit it). Rotate the
+      super-admin password from the seeder default (<code>SUPER_ADMIN_PASSWORD</code>). Always serve over
+      HTTPS so Bearer tokens aren't exposed. MFA, login throttling, and login history are
+      <span class="pill plan">PLANNED</span> (see <code>docs/08-SECURITY.md</code>).</div>
+
+
+    <h2 class="anchor" id="api">8. API reference</h2>
+    <p>REST over HTTPS, JSON, versioned at <code>/api/v1</code> (prefix set in <code>bootstrap/app.php</code>).
+    Auth via <code>Authorization: Bearer &lt;access_token&gt;</code>.</p>
+
+    <h3>Response envelope (standardised)</h3>
+    <pre><code>// Success
+{ "data": { ... }, "meta": { "page": 1, "per_page": 20, "total": 134 } }
+
+// Error
+{ "error": { "code": "SEAT_LIMIT_REACHED",
+             "message": "Your plan allows 25 employees.",
+             "details": { "limit": 25, "current": 25 } } }</code></pre>
+    <p>Built by <code>App\Platform\Http\ApiResponse</code>. Global exception handlers in
+    <code>bootstrap/app.php</code> convert validation (422), auth (401), authorization/permission (403),
+    and not-found (404) into this exact shape.</p>
+
+    <h4>Canonical error codes (<code>ErrorCode</code> enum)</h4>
+    <p><code>UNAUTHENTICATED</code> · <code>FORBIDDEN</code> · <code>VALIDATION_FAILED</code> · <code>NOT_FOUND</code> ·
+    <code>MODULE_NOT_LICENSED</code> · <code>FEATURE_NOT_AVAILABLE</code> · <code>SEAT_LIMIT_REACHED</code> ·
+    <code>SUBSCRIPTION_INACTIVE</code> · <code>TENANT_MISMATCH</code> · <code>RATE_LIMITED</code> · <code>SERVER_ERROR</code></p>
+
+    <h3>Implemented endpoints <span class="pill built">BUILT</span></h3>
+    <p>Public (no auth):</p>
+    <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/register-company</span></div>
+    <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/login</span></div>
+    <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/refresh</span></div>
+    <p>Protected (<code>auth:api</code> + <code>tenant</code>):</p>
+    <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/logout</span></div>
+    <div class="endpoint"><span class="verb get">GET</span><span>/api/v1/me</span></div>
+    <div class="endpoint"><span class="verb get">GET</span><span>/api/v1/me/entitlements</span></div>
+    <p>Plus Laravel's health check at <code>GET /up</code>.</p>
+
+    <h4>Endpoint details</h4>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Auth</th><th>Request body</th><th>Response <code>data</code></th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /auth/register-company</code></td><td>none</td><td><code>company_name</code>, <code>admin_name</code>, <code>email</code>, <code>password</code>+<code>password_confirmation</code> (min 8), optional <code>plan_code</code> (must exist)</td><td><code>company</code>, <code>user</code>, <code>tokens</code> — creates company + Company Admin user + trial subscription (HTTP 201)</td></tr>
+        <tr><td><code>POST /auth/login</code></td><td>none</td><td><code>email</code>, <code>password</code></td><td><code>user</code> (uuid, roles, permissions, is_super_admin, company_id) + <code>tokens</code> (access, refresh, token_type, expires_in)</td></tr>
+        <tr><td><code>POST /auth/refresh</code></td><td>refresh token in body</td><td><code>refresh_token</code></td><td>new <code>user</code> + rotated <code>tokens</code></td></tr>
+        <tr><td><code>POST /auth/logout</code></td><td>access token</td><td>—</td><td>revokes all active refresh tokens for the user</td></tr>
+        <tr><td><code>GET /me</code></td><td>access token</td><td>—</td><td>profile + roles + permissions</td></tr>
+        <tr><td><code>GET /me/entitlements</code></td><td>access token</td><td>—</td><td>resolved entitlement: <code>status</code>, <code>access_granted</code>, <code>modules[]</code>, <code>features{}</code>, <code>seats{included,purchased,limit}</code></td></tr>
+      </tbody>
+    </table>
+
+    <h4>Example: register a company</h4>
+    <pre><code>curl -X POST http://localhost:8000/api/v1/auth/register-company \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_name": "Acme Pvt Ltd",
+    "admin_name": "Asha Rao",
+    "email": "asha@acme.test",
+    "password": "secret123",
+    "password_confirmation": "secret123",
+    "plan_code": "growth"
+  }'</code></pre>
+
+    <h3>Planned endpoints <span class="pill plan">PLANNED</span></h3>
+    <p>The full catalogue (subscription/billing, employees, attendance, leave, payroll, super-admin)
+    is specified in <code>docs/07-API.md</code>. They are not yet routed. The routes file shows the intended
+    pattern as comments, e.g. <code>Route::middleware('module:payroll')->prefix('payroll')->group(...)</code>.</p>
+
+    <h3>API versioning strategy</h3>
+    <ul>
+      <li>All routes live under <code>/api/v1</code> (the prefix is centralised in <code>bootstrap/app.php</code> → <code>apiPrefix: 'api/v1'</code>).</li>
+      <li>Breaking changes introduce a new prefix (<code>/api/v2</code>) and a parallel controller namespace (<code>Api\V2</code>); v1 stays until clients migrate.</li>
+      <li>The response envelope and error-code contract are stable across versions so clients can rely on them.</li>
+      <li>A future OpenAPI 3.1 spec is intended at <code>backend/openapi.yaml</code>.</li>
+    </ul>
+
+
+    <h2 class="anchor" id="prereqs">9. Development environment setup (from a brand-new computer)</h2>
+    <p>You need: <b>PHP 8.4</b> (with <code>pdo_pgsql</code>, <code>redis</code>, <code>intl</code>, <code>bcmath</code>, <code>zip</code>,
+    <code>opcache</code>), <b>Composer 2</b>, <b>Node.js 20+</b> &amp; <b>npm</b> (for the Vite asset build),
+    <b>PostgreSQL 16</b>, <b>Redis 7</b>, <b>Git</b>, and optionally <b>Docker</b>. The single fastest path is
+    Docker (§17) — these native steps are for those who prefer a local toolchain.</p>
+
+    <div class="callout note"><div class="t">Fastest path</div>
+      If you just want it running: install Docker Desktop, then jump to §17 and run
+      <code>docker compose -f infra/docker-compose.yml up -d --build</code>. The rest of this section is for native installs.</div>
+
+    <h3>Ubuntu / Debian</h3>
+    <pre><code># 1. System update
+sudo apt update && sudo apt upgrade -y
+
+# 2. PHP 8.4 + extensions (Ondřej Surý PPA)
+sudo add-apt-repository ppa:ondrej/php -y && sudo apt update
+sudo apt install -y php8.4-cli php8.4-fpm php8.4-pgsql php8.4-redis \
+  php8.4-intl php8.4-bcmath php8.4-zip php8.4-mbstring php8.4-curl php8.4-xml
+php -v                                  # verify: PHP 8.4.x
+
+# 3. Composer (PHP dependency manager)
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+composer --version                      # verify
+
+# 4. Node.js 20 + npm (builds frontend assets via Vite)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v && npm -v                       # verify
+
+# 5. PostgreSQL 16
+sudo apt install -y postgresql-16 postgresql-client-16
+sudo systemctl enable --now postgresql
+psql --version                          # verify
+
+# 6. Redis 7
+sudo apt install -y redis-server
+sudo systemctl enable --now redis-server
+redis-cli ping                          # → PONG
+
+# 7. Git
+sudo apt install -y git && git --version</code></pre>
+    <p><b>What each does:</b> <code>php8.4-*</code> install the runtime + the extensions the app requires
+    (Postgres driver, Redis, intl for locale, bcmath for money math, zip for exports). Composer manages
+    PHP packages. Node/npm build CSS/JS via Vite. PostgreSQL is the database; Redis is cache + queue.</p>
+
+    <h3>macOS (Homebrew)</h3>
+    <pre><code># Install Homebrew if needed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+brew install php@8.4 composer node postgresql@16 redis git
+brew services start postgresql@16
+brew services start redis
+
+php -v && composer --version && node -v && psql --version && redis-cli ping</code></pre>
+
+    <h3>Windows</h3>
+    <p>Two good options. <b>Recommended: WSL2 + Ubuntu</b>, then follow the Ubuntu steps inside WSL.</p>
+    <pre><code># In an elevated PowerShell:
+wsl --install -d Ubuntu
+# reboot, open "Ubuntu", then run the Ubuntu section above inside WSL.</code></pre>
+    <p>Or native Windows with <a href="https://chocolatey.org/">Chocolatey</a>:</p>
+    <pre><code>choco install php composer nodejs-lts postgresql16 redis-64 git -y
+# Enable PHP extensions in php.ini: extension=pdo_pgsql, extension=redis,
+# extension=intl, extension=zip, extension=bcmath, extension=openssl</code></pre>
+
+    <h3>Verifying everything</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Check</th><th>Expected</th></tr></thead>
+      <tbody>
+        <tr><td>PHP</td><td><code>php -m</code></td><td>lists <code>pdo_pgsql</code>, <code>redis</code>, <code>intl</code>, <code>bcmath</code>, <code>zip</code></td></tr>
+        <tr><td>Composer</td><td><code>composer --version</code></td><td>Composer 2.x</td></tr>
+        <tr><td>Node</td><td><code>node -v</code></td><td>v20.x+</td></tr>
+        <tr><td>Postgres</td><td><code>psql --version</code></td><td>16.x</td></tr>
+        <tr><td>Redis</td><td><code>redis-cli ping</code></td><td><code>PONG</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Common installation issues &amp; fixes</h3>
+    <table>
+      <thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td><code>could not find driver</code> on migrate</td><td><code>pdo_pgsql</code> missing</td><td>Install <code>php8.4-pgsql</code> and restart PHP-FPM / terminal</td></tr>
+        <tr><td><code>Class "Redis" not found</code></td><td>phpredis extension missing</td><td>Install <code>php8.4-redis</code>; verify <code>php -m | grep redis</code></td></tr>
+        <tr><td><code>psql: FATAL: role "hrms" does not exist</code></td><td>DB user not created</td><td>See §10 database creation</td></tr>
+        <tr><td>Composer memory exhausted</td><td>PHP CLI memory limit</td><td><code>COMPOSER_MEMORY_LIMIT=-1 composer install</code></td></tr>
+        <tr><td>Vite/npm fails</td><td>Node too old</td><td>Use Node 20 LTS (nvm: <code>nvm install 20</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="anchor" id="install">10. Project installation</h2>
+    <p>These commands assume a native install. Run them from the <code>backend/</code> directory unless noted.</p>
+    <pre><code># 1. Clone
+git clone https://github.com/geryshadesinnovations/HRM.git
+cd HRM/backend
+
+# 2. PHP dependencies
+composer install                         # reads composer.lock, installs vendor/
+
+# 3. Environment file
+cp .env.example .env
+php artisan key:generate                 # sets APP_KEY
+
+# 4. Set a JWT secret (REQUIRED — app won't issue tokens without it)
+#    edit .env →  JWT_SECRET=$(openssl rand -hex 32)
+
+# 5. Create the database + user (run in psql as the postgres superuser)
+sudo -u postgres psql -c "CREATE USER hrms WITH PASSWORD 'secret';"
+sudo -u postgres psql -c "CREATE DATABASE hrms OWNER hrms;"
+#    then in .env: DB_CONNECTION=pgsql DB_DATABASE=hrms DB_USERNAME=hrms DB_PASSWORD=secret
+
+# 6. Run migrations (creates all tables)
+php artisan migrate
+
+# 7. Seed canonical data (modules, plans, roles/permissions, super admin)
+php artisan db:seed
+
+# 8. Frontend assets (Vite build for Blade welcome page / future assets)
+npm install
+npm run build
+
+# 9. Run the API
+php artisan serve                        # http://localhost:8000</code></pre>
+
+    <h4>What the seeders create (and expected output)</h4>
+    <ul>
+      <li><code>ModuleSeeder</code> → 7 modules (attendance, leave, payroll, recruitment, assets, performance, expenses) + their features + the cross-cutting <code>employees.max</code> limit feature.</li>
+      <li><code>PlanSeeder</code> → Starter / Growth / Enterprise plans with module + feature mappings.</li>
+      <li><code>RolePermissionSeeder</code> → ~30 permissions + 5 roles on the <code>api</code> guard.</li>
+      <li><code>SuperAdminSeeder</code> → a platform super admin. Default: <code>superadmin@hrms.test</code> / <code>password</code> (override with <code>SUPER_ADMIN_EMAIL</code> / <code>SUPER_ADMIN_PASSWORD</code> in <code>.env</code>).</li>
+    </ul>
+    <div class="callout warn"><div class="t">Seeders are idempotent</div>
+      They use <code>updateOrCreate</code>/<code>findOrCreate</code>, so re-running <code>db:seed</code> is safe and
+      won't duplicate reference data.</div>
+
+    <h4>Verify the install</h4>
+    <pre><code># Health check
+curl http://localhost:8000/up                       # → 200
+
+# Register a company and get tokens
+curl -X POST http://localhost:8000/api/v1/auth/register-company \
+  -H "Content-Type: application/json" \
+  -d '{"company_name":"Acme","admin_name":"Asha","email":"asha@acme.test","password":"secret123","password_confirmation":"secret123","plan_code":"starter"}'
+# → 201 with data.tokens.access_token
+
+# Run the test suite (uses in-memory sqlite, no DB setup needed)
+php artisan test</code></pre>
+
+    <h4>Storage linking &amp; queues/scheduler (local)</h4>
+    <pre><code>php artisan storage:link        # public symlink for served files (when storage is used)
+php artisan queue:work          # process queued jobs (Redis queue)
+php artisan schedule:work       # run the scheduler loop locally</code></pre>
+
+    <h4>Development vs production mode</h4>
+    <table>
+      <thead><tr><th>Setting</th><th>Development</th><th>Production</th></tr></thead>
+      <tbody>
+        <tr><td><code>APP_ENV</code></td><td><code>local</code></td><td><code>production</code></td></tr>
+        <tr><td><code>APP_DEBUG</code></td><td><code>true</code></td><td><code>false</code> (never leak stack traces)</td></tr>
+        <tr><td>Assets</td><td><code>npm run dev</code> (Vite HMR)</td><td><code>npm run build</code></td></tr>
+        <tr><td>Caches</td><td>cleared</td><td><code>php artisan config:cache route:cache event:cache</code></td></tr>
+        <tr><td>Migrations</td><td><code>migrate</code></td><td><code>migrate --force</code></td></tr>
+      </tbody>
+    </table>
+
+    <h4>Troubleshooting installation</h4>
+    <table>
+      <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td><code>No application encryption key</code></td><td><code>php artisan key:generate</code></td></tr>
+        <tr><td>Tokens fail / "secret" errors</td><td>Set <code>JWT_SECRET</code> in <code>.env</code>, then <code>php artisan config:clear</code></td></tr>
+        <tr><td><code>SQLSTATE connection refused</code></td><td>Postgres not running or wrong <code>DB_HOST/PORT</code>; <code>systemctl status postgresql</code></td></tr>
+        <tr><td>Permission errors writing logs</td><td><code>chmod -R ug+w storage bootstrap/cache</code></td></tr>
+        <tr><td>Stale config after <code>.env</code> edits</td><td><code>php artisan config:clear</code></td></tr>
+      </tbody>
+    </table>
+
+
+    <h2 class="anchor" id="deploy">11. Production deployment</h2>
+    <p>The app tier is <b>stateless</b> (JWT auth, cache/queue in Redis, files in S3/R2), so it scales
+    horizontally. Below are recommended specs and a full Ubuntu server bring-up.</p>
+
+    <h3>Server requirements</h3>
+    <table>
+      <thead><tr><th>Tier</th><th>CPU</th><th>RAM</th><th>Storage</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Small (≤50 tenants)</td><td>2 vCPU</td><td>4 GB</td><td>40 GB SSD</td><td>All-in-one with docker-compose (§17)</td></tr>
+        <tr><td>Medium</td><td>4 vCPU</td><td>8–16 GB</td><td>100 GB SSD</td><td>App + managed Postgres/Redis separated</td></tr>
+        <tr><td>Large (1000s)</td><td>app: N×2 vCPU</td><td>app: 4 GB each</td><td>DB on managed service</td><td>LB + N stateless app nodes; PgBouncer; replicas</td></tr>
+      </tbody>
+    </table>
+    <p><b>Network:</b> HTTPS (443) public; Postgres (5432) and Redis (6379) private only; SSH (22)
+    restricted by firewall. Outbound to payment gateways + mail/SMS providers when those land.</p>
+
+    <h3 id="ubuntu-server">Ubuntu server installation (single host)</h3>
+    <pre><code># System
+sudo apt update && sudo apt upgrade -y         # patch the OS
+
+# Nginx (reverse proxy / web server)
+sudo apt install -y nginx
+sudo systemctl enable --now nginx
+
+# PHP 8.4 FPM + extensions
+sudo add-apt-repository ppa:ondrej/php -y && sudo apt update
+sudo apt install -y php8.4-fpm php8.4-pgsql php8.4-redis php8.4-intl \
+  php8.4-bcmath php8.4-zip php8.4-mbstring php8.4-curl php8.4-xml php8.4-opcache
+
+# Composer
+curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
+
+# PostgreSQL 16
+sudo apt install -y postgresql-16
+
+# Redis 7
+sudo apt install -y redis-server
+
+# Supervisor (keeps queue workers + scheduler alive)
+sudo apt install -y supervisor
+
+# SSL via certbot (Let's Encrypt)
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d api.yourdomain.com
+
+# Firewall
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable</code></pre>
+    <p><b>Why each:</b> Nginx terminates HTTP and proxies PHP. PHP-FPM runs the app. Composer installs
+    deps. Postgres/Redis are the datastores. Supervisor restarts queue/scheduler processes if they die.
+    Certbot provisions/renews TLS certs. UFW limits exposed ports.</p>
+
+    <h3>Deploy the app on the server</h3>
+    <pre><code>cd /var/www && sudo git clone https://github.com/geryshadesinnovations/HRM.git
+cd HRM/backend
+composer install --no-dev --optimize-autoloader
+cp .env.example .env        # then edit: APP_ENV=production, APP_DEBUG=false, DB/Redis/JWT secrets
+php artisan key:generate
+php artisan migrate --force
+php artisan db:seed --force
+php artisan config:cache && php artisan route:cache && php artisan event:cache
+sudo chown -R www-data:www-data storage bootstrap/cache</code></pre>
+
+    <h2 class="anchor" id="nginx">12. Nginx configuration</h2>
+    <p>The repo ships a working server block at <code>infra/docker/nginx/default.conf</code>. For a native
+    host, the production version adds TLS:</p>
+    <pre><code>server {
+    listen 80;
+    server_name api.yourdomain.com;
+    return 301 https://$host$request_uri;        # force HTTPS
+}
+server {
+    listen 443 ssl http2;
+    server_name api.yourdomain.com;
+    root /var/www/HRM/backend/public;            # Laravel public dir is the web root
+    index index.php;
+    client_max_body_size 25m;                    # allow file/import uploads
+
+    ssl_certificate     /etc/letsencrypt/live/api.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.yourdomain.com/privkey.pem;
+
+    # Security headers (see docs/08-SECURITY.md)
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    location / { try_files $uri $uri/ /index.php?$query_string; }   # pretty URLs → front controller
+
+    location ~ \.php$ {                          # hand .php to PHP-FPM
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+    }
+    location ~ /\.(?!well-known).* { deny all; }  # block dotfiles
+}</code></pre>
+    <p><b>Request flow:</b> client → Nginx (TLS terminates here) → if the path is a real file it's served
+    directly, otherwise it's rewritten to <code>index.php</code> → forwarded over FastCGI to PHP-FPM →
+    Laravel. For the Docker setup, <code>fastcgi_pass</code> targets <code>app:9000</code> (the PHP-FPM container)
+    instead of a unix socket. A future Next.js frontend would be reverse-proxied on <code>/</code> with the
+    API kept on <code>/api</code> (or a separate subdomain).</p>
+
+    <h2 class="anchor" id="postgres">13. PostgreSQL configuration</h2>
+    <pre><code># Create role + database
+sudo -u postgres psql
+  CREATE USER hrms WITH PASSWORD 'strong-secret';
+  CREATE DATABASE hrms OWNER hrms;
+  \q
+
+# Allow the app host only (edit pg_hba.conf), use scram-sha-256 auth.
+# Restrict listen_addresses to private network interfaces in postgresql.conf.</code></pre>
+    <h4>Performance tuning (starting points for an 8 GB DB host)</h4>
+    <table>
+      <thead><tr><th>Parameter</th><th>Suggested</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>shared_buffers</code></td><td>2GB (~25% RAM)</td><td>Primary cache for table/index pages</td></tr>
+        <tr><td><code>effective_cache_size</code></td><td>6GB (~75% RAM)</td><td>Planner hint for OS cache</td></tr>
+        <tr><td><code>work_mem</code></td><td>16–32MB</td><td>Per-sort/hash; raise carefully (multiplied by connections)</td></tr>
+        <tr><td><code>maintenance_work_mem</code></td><td>512MB</td><td>Faster index builds / vacuum</td></tr>
+        <tr><td><code>max_connections</code></td><td>100 (+ PgBouncer)</td><td>Pool with PgBouncer at scale</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><b>Indexing</b>: every tenant query leads with <code>company_id</code> — these indexes already exist in the migrations. Add composite indexes as new modules add hot query paths.</li>
+      <li><b>Backups</b>: nightly <code>pg_dump</code> + WAL archiving for point-in-time recovery (see §22).</li>
+      <li><b>Optimization</b>: enable <code>auto_explain</code> / <code>pg_stat_statements</code> to find slow queries; partition high-volume tables (attendance/audit) by month when those land.</li>
+    </ul>
+
+    <h2 class="anchor" id="redis">14. Redis configuration</h2>
+    <pre><code># /etc/redis/redis.conf essentials
+bind 127.0.0.1 &lt;private-ip&gt;
+requirepass &lt;strong-secret&gt;          # then set REDIS_PASSWORD in .env
+maxmemory 1gb
+maxmemory-policy allkeys-lru          # evict least-recently-used for the cache role</code></pre>
+    <p>Redis serves three roles here:</p>
+    <ul>
+      <li><b>Cache</b> (<code>CACHE_STORE=redis</code>) — notably the entitlement cache (1h TTL) so subscription checks are O(1).</li>
+      <li><b>Queue</b> (<code>QUEUE_CONNECTION=redis</code>) — background jobs.</li>
+      <li><b>Sessions</b> (<code>SESSION_DRIVER=redis</code>) — though the API is stateless via JWT, session store backs any web/Blade flows.</li>
+    </ul>
+    <p><b>Performance benefit:</b> in-memory reads (sub-millisecond) keep Postgres free for transactional
+    work; LRU eviction means the cache self-manages under memory pressure.</p>
+
+    <h2 class="anchor" id="queue">15. Queue system</h2>
+    <p>Jobs run on a Redis-backed queue. The <code>horizon</code> service in compose runs
+    <code>php artisan queue:work --tries=3 --timeout=120</code>. (Laravel Horizon itself — the dashboard —
+    is referenced in the blueprint but not yet a dependency; plain <code>queue:work</code> is what runs today.)</p>
+    <ul>
+      <li><b>How it works:</b> a job is pushed to Redis; a worker pops it and executes <code>handle()</code>. The HTTP request returns immediately.</li>
+      <li><b>Failures:</b> with <code>--tries=3</code>, a failing job retries up to 3 times, then lands in the <code>failed_jobs</code> table (the <code>jobs</code>/failed-jobs migrations exist).</li>
+      <li><b>Retries:</b> <code>php artisan queue:retry all</code> re-queues failed jobs; <code>queue:forget</code> drops one.</li>
+    </ul>
+    <pre><code># Local
+php artisan queue:work --tries=3 --timeout=120
+
+# Production (under Supervisor)
+[program:hrms-worker]
+command=php /var/www/HRM/backend/artisan queue:work redis --sleep=3 --tries=3 --timeout=120
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/hrms-worker.log</code></pre>
+    <div class="callout note"><div class="t">Planned jobs</div>
+      Payroll runs, bulk employee imports, report exports, webhook processing, and notification sends
+      are all designed to run as queued jobs. None are implemented yet — the infrastructure is ready for them.</div>
+
+    <h2 class="anchor" id="scheduler">16. Scheduler</h2>
+    <p>The <code>scheduler</code> container loops <code>php artisan schedule:run</code> every 60s. On a native
+    host you wire one cron entry:</p>
+    <pre><code># crontab -e  (as www-data)
+* * * * * cd /var/www/HRM/backend && php artisan schedule:run >> /dev/null 2>&1</code></pre>
+    <p>Scheduled tasks are defined in <code>routes/console.php</code>. Today only the demo <code>inspire</code>
+    command exists. The <b>planned</b> scheduled tasks (designed in <code>docs/03</code>) are:</p>
+    <table>
+      <thead><tr><th>Task</th><th>Cadence</th><th>Purpose</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code>subscriptions:sweep</code></td><td>hourly/daily</td><td>trial→expired, active→grace→expired by date; emit expiring-soon events</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td><code>subscriptions:renew</code></td><td>daily</td><td>auto-renewal charges with retry/backoff</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Leave accrual</td><td>daily/monthly</td><td>accrue balances, carry-forward at year boundary</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Notification + cleanup jobs</td><td>varies</td><td>reminders, partition archival, token cleanup</td><td><span class="pill plan">PLANNED</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="anchor" id="docker">17. Docker</h2>
+    <p>Everything for a single-server stack ships in <code>infra/</code>. The PHP image is PHP 8.4-FPM Alpine
+    with <code>pdo_pgsql</code>, <code>redis</code>, <code>intl</code>, <code>zip</code>, <code>bcmath</code>, <code>opcache</code> (JIT enabled), and Composer.</p>
+    <pre><code># Bring up the full stack (app, nginx, postgres, redis, horizon, scheduler)
+cp backend/.env.example backend/.env       # set JWT_SECRET, DB_*, REDIS_*
+docker compose -f infra/docker-compose.yml up -d --build
+
+# First-time app setup inside the container
+docker compose -f infra/docker-compose.yml exec app php artisan key:generate
+docker compose -f infra/docker-compose.yml exec app php artisan migrate --seed
+
+# API now on http://localhost:8000</code></pre>
+    <h4>Containers &amp; what they do</h4>
+    <table>
+      <thead><tr><th>Service</th><th>Image / build</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>app</code></td><td>PHP 8.4-FPM (built from <code>infra/docker/php/Dockerfile</code>)</td><td>Runs the Laravel app (FPM on :9000)</td></tr>
+        <tr><td><code>nginx</code></td><td>nginx:1.27-alpine</td><td>Serves :8000, proxies <code>.php</code> to <code>app:9000</code></td></tr>
+        <tr><td><code>postgres</code></td><td>postgres:16-alpine</td><td>Database; persisted in the <code>pgdata</code> volume; healthcheck gates app start</td></tr>
+        <tr><td><code>redis</code></td><td>redis:7-alpine</td><td>Cache + queue + sessions</td></tr>
+        <tr><td><code>horizon</code></td><td>same PHP image</td><td>Queue worker (<code>queue:work</code>)</td></tr>
+        <tr><td><code>scheduler</code></td><td>same PHP image</td><td>Runs <code>schedule:run</code> every 60s</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><b>Networking:</b> services share the default compose network and reach each other by name (<code>postgres</code>, <code>redis</code>, <code>app</code>).</li>
+      <li><b>Volumes:</b> <code>pgdata</code> persists the database; the backend source is bind-mounted for the dev workflow.</li>
+      <li><b>Scaling:</b> <code>docker compose up -d --scale horizon=3</code> adds queue workers. For multi-node, move Postgres/Redis to managed services and run the stateless <code>app</code>+<code>nginx</code> behind a load balancer (see §11 large tier).</li>
+      <li><b>Troubleshooting:</b> <code>docker compose logs -f app</code>; <code>... exec app php artisan about</code>; if the app starts before Postgres, the healthcheck dependency normally prevents it — otherwise restart <code>app</code>.</li>
+    </ul>
+
+    <h2 class="anchor" id="cicd">18. CI/CD</h2>
+    <p>GitHub Actions (<code>.github/workflows/ci.yml</code>) runs on every push to <code>main</code> and every PR.
+    It spins up real Postgres 16 + Redis 7 service containers and:</p>
+    <ol>
+      <li>Sets up PHP 8.4 with the required extensions.</li>
+      <li>Caches and installs Composer dependencies.</li>
+      <li>Copies <code>.env.example</code> and generates an app key.</li>
+      <li><b>Lints</b> with Laravel Pint (<code>pint --test</code>).</li>
+      <li><b>Migrates</b> against Postgres.</li>
+      <li><b>Runs the test suite</b> (<code>php artisan test</code>) — including the tenant-isolation and subscription-gating tests.</li>
+    </ol>
+    <h4>Git workflow &amp; branching</h4>
+    <ul>
+      <li>Work on feature branches (current: <code>feat/foundation-architecture-and-spine</code>); open a PR into <code>main</code>.</li>
+      <li>CI must be green before merge; the tenant-isolation suite is a hard gate.</li>
+      <li><b>Deployment pipeline (intended):</b> on merge to <code>main</code>, build + scan images, run <code>migrate --force</code>, deploy staging → production with approval. Use expand/contract migrations for zero-downtime.</li>
+      <li><b>Rollback:</b> redeploy the previous image tag; never destructively reverse data migrations — prefer a forward fix. Keep <code>migrate:rollback</code> for the latest reversible batch only.</li>
+    </ul>
+
+
+    <h2 class="anchor" id="modify">19. How to modify the project — change-impact maps</h2>
+    <p>The most valuable section for a new team. For each common change, here is exactly what to touch,
+    in dependency order, plus the side-effects and risks.</p>
+
+    <h3>19.1 Add a new employee field (e.g. <code>blood_group</code>)</h3>
+    <div class="diagram"><pre>
+migration (new file, add column)         → employees table
+   └─▶ Employee model $fillable (+ $casts if typed)
+        └─▶ FormRequest validation rules  (StoreEmployeeRequest — PLANNED)
+             └─▶ Controller / Service write path
+                  └─▶ API Resource / response shape
+                       └─▶ Frontend form + table column (PLANNED)
+                            └─▶ Reports / exports that list employees
+                                 └─▶ Tests (factory + feature assertions)
+    </pre></div>
+    <ul>
+      <li><b>Files that change today:</b> a new migration, <code>Employee.php</code> (<code>$fillable</code>). Everything else (request/controller/resource) is added when the Employee CRUD lands.</li>
+      <li><b>Risk:</b> adding a NOT NULL column to a populated table breaks inserts — add nullable, backfill, then enforce (expand/contract).</li>
+      <li><b>Don't:</b> edit a shipped migration. Add a new one.</li>
+    </ul>
+
+    <h3>19.2 Add a new module (e.g. <code>recruitment</code> logic)</h3>
+    <div class="diagram"><pre>
+ModuleSeeder (already lists recruitment)  → modules + features rows
+   └─▶ PlanSeeder: map module to plans      → plan_module / plan_feature
+        └─▶ RolePermissionSeeder: add recruitment.* permissions + assign to roles
+             └─▶ Domains/Recruitment/{Models,Services,...}  (new domain folder)
+                  └─▶ migrations for recruitment tables (carry company_id + BelongsToTenant)
+                       └─▶ routes/api.php: group wrapped in module:recruitment (+permission:)
+                            └─▶ Frontend menu item, gated by entitlements (PLANNED)
+                                 └─▶ Tests: gating + tenant isolation for new models
+    </pre></div>
+    <ul>
+      <li><b>Database:</b> the module/feature/plan mapping is pure data (seeders); only the recruitment <i>domain</i> tables are new schema.</li>
+      <li><b>Subscription settings:</b> decide which plans include it (or sell as an add-on via <code>subscription.overrides.modules.add</code>).</li>
+      <li><b>Permissions:</b> add <code>recruitment.*</code> codes and assign to the right roles.</li>
+      <li><b>No core changes</b> — modules are additive by design. New models must use <code>BelongsToTenant</code> + <code>HasUuid</code>.</li>
+    </ul>
+
+    <h3>19.3 Change payroll logic <span class="pill plan">PLANNED domain</span></h3>
+    <div class="diagram"><pre>
+PayrollCalculationService (component math)  → the single source of truth
+   └─▶ SalaryStructure / Component models    → earnings/deductions definitions
+        └─▶ PayrollRun job (chunked, idempotent)
+             └─▶ Payslip.breakdown JSON       → exact per-component record
+                  └─▶ Payroll reports (summary/register/deductions/tax)
+                       └─▶ Tests: known-input → known-net assertions
+    </pre></div>
+    <ul>
+      <li><b>Services that change:</b> the calculation service and any attendance/leave integration (LOP, overtime).</li>
+      <li><b>Reports that change:</b> salary register, deduction, tax reports must reflect new components.</li>
+      <li><b>Risk:</b> money math — keep everything in integer paise; never floats. Add regression tests with fixed inputs.</li>
+    </ul>
+
+    <h3>19.4 Change billing logic <span class="pill plan">PLANNED domain</span></h3>
+    <div class="diagram"><pre>
+PaymentGateway contract  ← swap/extend adapters (Razorpay/Cashfree/PayU/Stripe)
+   └─▶ GatewayManager (resolves billing.default_gateway)
+        └─▶ Webhook controller → ProcessWebhook job (idempotent on event_id)
+             └─▶ Invoice / Payment / Subscription state updates (transaction)
+                  └─▶ TaxCalculator (GST) → invoice_lines totals
+                       └─▶ Notifications (payment success/failure)
+    </pre></div>
+    <ul>
+      <li><b>Payment services:</b> implement the gateway contract; switch via <code>BILLING_DEFAULT_GATEWAY</code> — no business-code change.</li>
+      <li><b>Webhooks:</b> always verify signature, persist raw for idempotency, then process in a job.</li>
+      <li><b>Invoices/subscription calc:</b> proration on upgrade/downgrade; seat + module add-on lines.</li>
+    </ul>
+
+    <h3>19.5 Add a new role or permission</h3>
+    <ul>
+      <li>Add the permission code to <code>RolePermissionSeeder::PERMISSIONS</code> and assign it under the relevant role(s); re-run <code>db:seed</code> (idempotent).</li>
+      <li>Apply it on routes via <code>permission:your.code</code>. Side-effect: any route already using it is now enforceable.</li>
+      <li>Risk: forgetting to assign to Company Admin — verify the role matrix after seeding.</li>
+    </ul>
+
+    <h2 class="anchor" id="troubleshooting">20. Troubleshooting guide</h2>
+    <table>
+      <thead><tr><th>Area</th><th>Symptom</th><th>Likely cause &amp; fix</th></tr></thead>
+      <tbody>
+        <tr><td>Common</td><td>500 with no detail</td><td><code>APP_DEBUG=false</code> in prod; check <code>storage/logs/laravel.log</code></td></tr>
+        <tr><td>Database</td><td><code>SQLSTATE[08006] connection refused</code></td><td>Postgres down / wrong host; <code>systemctl status postgresql</code>; verify <code>DB_*</code></td></tr>
+        <tr><td>Database</td><td>migrations hang</td><td>A lock from a crashed migration; check <code>pg_stat_activity</code>, terminate the stuck PID</td></tr>
+        <tr><td>Redis</td><td><code>Connection refused 6379</code></td><td>Redis down or <code>REDIS_PASSWORD</code> mismatch; <code>redis-cli -a &lt;pass&gt; ping</code></td></tr>
+        <tr><td>Queue</td><td>jobs never run</td><td>No worker running; start <code>queue:work</code> / check Supervisor; confirm <code>QUEUE_CONNECTION=redis</code></td></tr>
+        <tr><td>Queue</td><td>job stuck retrying</td><td>Inspect <code>failed_jobs</code>; <code>queue:retry</code> after fixing root cause</td></tr>
+        <tr><td>Deployment</td><td>changes not reflected</td><td>Cached config/routes; run <code>php artisan optimize:clear</code> then re-cache</td></tr>
+        <tr><td>Permission</td><td>403 FORBIDDEN unexpectedly</td><td>Role lacks the permission OR Spatie cache stale; <code>php artisan permission:cache-reset</code></td></tr>
+        <tr><td>Subscription</td><td>403 MODULE_NOT_LICENSED</td><td>Plan doesn't grant the module, or status is blocked, or stale entitlement cache (changes invalidate via <code>updated_at</code> key)</td></tr>
+        <tr><td>Subscription</td><td>SEAT_LIMIT_REACHED</td><td>Active employees ≥ seat limit; buy seats or upgrade plan</td></tr>
+        <tr><td>Auth</td><td>tokens rejected</td><td><code>JWT_SECRET</code> changed/missing; clock skew; access token expired (use refresh)</td></tr>
+        <tr><td>Tenancy</td><td>queries return nothing</td><td>No tenant resolved (fail-closed <code>1=0</code>); ensure <code>tenant</code> middleware ran / use <code>bypass()</code> for platform ops</td></tr>
+      </tbody>
+    </table>
+    <p><b>Log locations:</b> app → <code>backend/storage/logs/laravel.log</code>; Nginx → <code>/var/log/nginx/{access,error}.log</code>;
+    PHP-FPM → <code>/var/log/php8.4-fpm.log</code>; Postgres → <code>/var/log/postgresql/</code>; Docker → <code>docker compose logs -f &lt;svc&gt;</code>.</p>
+    <p><b>Debugging strategy:</b> reproduce → check the relevant log → <code>php artisan about</code> for env sanity →
+    <code>php artisan tinker</code> to probe models/entitlements → narrow with a failing test.</p>
+
+    <h2 class="anchor" id="monitoring">21. Monitoring &amp; maintenance</h2>
+    <ul>
+      <li><b>Health checks:</b> <code>GET /up</code> (Laravel built-in) behind your LB/uptime monitor.</li>
+      <li><b>Logs:</b> structured JSON logs shipped to a central store with request-id correlation (intended). Today: stack/single channel to <code>storage/logs</code>.</li>
+      <li><b>Metrics (planned):</b> Prometheus exporters for app/php-fpm/postgres/redis; Grafana dashboards for business (MRR/ARR) + system health; alerts on queue backlog, error rate, failed payments, expiring subscriptions.</li>
+      <li><b>Queue monitoring:</b> watch <code>failed_jobs</code> count; add Horizon for throughput/latency dashboards.</li>
+      <li><b>Database monitoring:</b> <code>pg_stat_statements</code> for slow queries; connection count vs <code>max_connections</code>; bloat/vacuum health.</li>
+      <li><b>Storage monitoring:</b> disk usage on the DB volume and S3/R2 bucket growth.</li>
+      <li><b>Security monitoring:</b> failed-login spikes, refresh-token reuse events (already logged via chain-revoke), webhook signature failures.</li>
+      <li><b>Routine maintenance:</b> patch OS + dependencies monthly; rotate logs; verify backups restore; review CI dependency scans.</li>
+    </ul>
+
+    <h2 class="anchor" id="backup">22. Backup &amp; recovery</h2>
+    <ul>
+      <li><b>Database backups:</b> nightly logical dump plus WAL archiving for point-in-time recovery.</li>
+    </ul>
+    <pre><code># Nightly logical backup
+pg_dump -Fc -U hrms hrms > /backups/hrms-$(date +%F).dump
+
+# Restore
+pg_restore -U hrms -d hrms --clean /backups/hrms-2026-06-25.dump
+
+# Docker volume backup (pgdata)
+docker run --rm -v hrms_pgdata:/data -v $PWD:/backup alpine \
+  tar czf /backup/pgdata-$(date +%F).tgz -C /data .</code></pre>
+    <ul>
+      <li><b>Storage backups:</b> enable versioning on the S3/R2 bucket; replicate cross-region for DR.</li>
+      <li><b>Server backups:</b> infrastructure-as-code + <code>.env</code> secrets in a secret manager so a host is reproducible; don't rely on snapshots alone.</li>
+      <li><b>Recovery procedure:</b> provision host → restore DB dump → restore object storage → deploy app at the matching image tag → run <code>migrate</code> → smoke-test <code>/up</code> + login.</li>
+      <li><b>Disaster recovery:</b> target RPO ≤ 24h (nightly) or ≤ 5 min (WAL); RTO measured by a documented runbook you should rehearse.</li>
+      <li><b>Business continuity:</b> remember the platform principle — <b>customer data is never destroyed automatically</b>; expiry/suspension only gates access, so reactivation restores everything.</li>
+    </ul>
+
+    <h2 class="anchor" id="future">23. Future expansion</h2>
+    <p>The architecture is built so future work is additive and low-risk. Follow these patterns:</p>
+    <table>
+      <thead><tr><th>Addition</th><th>How to add it safely</th></tr></thead>
+      <tbody>
+        <tr><td>Recruitment, Performance, Assets, Expenses</td><td>Register a module code (seed), map to plans, add a <code>Domains/&lt;X&gt;</code> folder, migrate tenant-scoped tables, wrap routes in <code>module:&lt;code&gt;</code>. No core changes.</td></tr>
+        <tr><td>ERP / Accounting / CRM integrations</td><td>New domain + module; expose via the versioned API; gate by entitlement; integrate with others only when both are licensed (graceful degradation).</td></tr>
+        <tr><td>Mobile apps</td><td>Consume the same <code>/api/v1</code> with JWT; entitlements drive feature availability identically to web.</td></tr>
+        <tr><td>AI features / analytics</td><td>Read from replicas / read models so analytics never impact OLTP; gate behind a feature flag + module.</td></tr>
+        <tr><td>New payment gateway (e.g. Stripe)</td><td>Implement the <code>PaymentGateway</code> contract; switch via <code>BILLING_DEFAULT_GATEWAY</code>.</td></tr>
+        <tr><td>New attendance capture (GPS/QR/biometric/face)</td><td>The <code>source</code> column + feature flags already accommodate them.</td></tr>
+        <tr><td>Internationalisation</td><td>Currency/timezone/locale are per-company; the tax strategy is pluggable beyond India GST.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout note"><div class="t">Definition of done for each increment</div>
+      Follows the layering in §2 · tenant-scoped + subscription-gated where applicable · tests
+      (incl. tenant isolation) pass in CI · docs updated if schema/behaviour changed · shipped via a
+      reviewed PR.</div>
+
+    <div class="footer">
+      <p><b>HRMS SaaS — Technical Handbook.</b> Generated from the actual implementation on the
+      <code>feat/foundation-architecture-and-spine</code> branch. Status tags (BUILT / PARTIAL / PLANNED)
+      reflect the codebase as it stands; the original design blueprint lives in <code>docs/00</code>–<code>docs/11</code>
+      and <code>docs/ROADMAP.md</code>. For the non-technical companion, see <code>business-documentation.html</code>.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  // Scroll-spy: highlight active nav link
+  var links = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function onScroll(){
+    var pos = window.scrollY + 120, current = null;
+    sections.forEach(function(s){ if(s.offsetTop <= pos) current = s; });
+    links.forEach(function(a){
+      a.classList.toggle('active', current && a.getAttribute('href') === '#'+current.id);
+    });
+  }
+  window.addEventListener('scroll', onScroll); onScroll();
+
+  // Sidebar search: filter nav links live
+  var search = document.getElementById('navSearch');
+  search.addEventListener('input', function(){
+    var q = this.value.toLowerCase().trim();
+    links.forEach(function(a){
+      var match = a.textContent.toLowerCase().indexOf(q) !== -1;
+      a.style.display = (q === '' || match) ? '' : 'none';
+    });
+    document.querySelectorAll('#nav .group').forEach(function(g){
+      g.style.display = q === '' ? '' : 'none';
+    });
+  });
+})();
+</script>
+</body>
+</html>

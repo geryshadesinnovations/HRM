@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRMS SaaS — Business Guide</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#ffffff; --ink:#1f2937; --ink2:#475569; --muted:#6b7280;
+    --brand:#4f46e5; --brand2:#0ea5e9; --accent:#10b981; --line:#e5e9f0;
+    --soft:#eef2ff; --soft2:#ecfeff; --warn:#b45309; --amber-bg:#fffbeb;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.7;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:300px;background:var(--panel);border-right:1px solid var(--line);
+    position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
+  .sidebar-head{padding:24px 22px 16px;border-bottom:1px solid var(--line)}
+  .brand{font-size:19px;font-weight:800;color:var(--ink);display:flex;gap:10px;align-items:center}
+  .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));
+    display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px}
+  .brand-sub{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;padding-left:40px}
+  .search{padding:14px 18px}
+  .search input{width:100%;padding:10px 13px;border-radius:9px;border:1px solid var(--line);font-size:14px;outline:none;background:#fbfcfe}
+  .search input:focus{border-color:var(--brand)}
+  nav{padding:0 12px 40px}
+  nav .group{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700;padding:16px 10px 6px}
+  nav a{display:block;padding:7px 11px;border-radius:8px;color:var(--ink2);font-size:14px;margin:1px 0}
+  nav a:hover{background:var(--soft)}
+  nav a.active{background:var(--soft);color:var(--brand);font-weight:600}
+
+  .content{margin-left:300px;flex:1;max-width:980px;padding:0 56px 120px}
+  @media(max-width:1050px){.content{padding:0 26px 90px}}
+  @media(max-width:880px){.sidebar{display:none}.content{margin-left:0}}
+
+  .hero{background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;border-radius:0 0 26px 26px;
+    padding:54px 56px 46px;margin:0 -56px 30px}
+  @media(max-width:1050px){.hero{margin:0 -26px 24px;padding:40px 28px}}
+  .hero h1{font-size:36px;margin:0 0 12px;font-weight:800;letter-spacing:-.6px}
+  .hero p{font-size:18px;max-width:720px;opacity:.95;margin:0}
+  .hero .tag{display:inline-block;background:rgba(255,255,255,.18);padding:5px 13px;border-radius:30px;
+    font-size:12.5px;font-weight:600;margin-bottom:18px;letter-spacing:.4px}
+
+  h2{font-size:26px;font-weight:800;color:var(--ink);margin:50px 0 12px;letter-spacing:-.3px}
+  h3{font-size:19px;font-weight:700;color:var(--ink);margin:28px 0 8px}
+  p{margin:12px 0;color:var(--ink2)}
+  ul,ol{color:var(--ink2)}
+  li{margin:6px 0}
+  strong,b{color:var(--ink)}
+
+  .lead{font-size:17.5px;color:var(--ink2)}
+  .section-intro{background:var(--soft);border-radius:14px;padding:18px 22px;color:var(--ink2);border:1px solid #e0e7ff}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card .ic{width:40px;height:40px;border-radius:11px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+  .card h4{margin:0 0 6px;font-size:16px;color:var(--ink)}
+  .card p{margin:0;font-size:14px}
+
+  table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14.5px;background:var(--panel);border-radius:12px;overflow:hidden}
+  th,td{border-bottom:1px solid var(--line);padding:12px 15px;text-align:left;vertical-align:top}
+  th{background:#f8fafc;color:var(--ink);font-weight:700}
+  td{color:var(--ink2)}
+  tr:last-child td{border-bottom:none}
+
+  .journey{margin:18px 0}
+  .step{display:flex;gap:16px;align-items:flex-start;padding:14px 0;position:relative}
+  .step:not(:last-child){border-left:2px dashed #cbd5e1;margin-left:18px;padding-left:26px}
+  .step:last-child{margin-left:18px;padding-left:26px}
+  .step .n{position:absolute;left:-19px;top:14px;width:36px;height:36px;border-radius:50%;
+    background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .step .b{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+  .step .b h4{margin:0 0 3px;font-size:15.5px;color:var(--ink)}
+  .step .b p{margin:0;font-size:14px}
+
+  .callout{border-radius:14px;padding:16px 20px;margin:18px 0;border:1px solid var(--line);background:var(--panel)}
+  .callout.tip{background:var(--soft2);border-color:#cffafe}
+  .callout.note{background:var(--soft);border-color:#e0e7ff}
+  .callout.amber{background:var(--amber-bg);border-color:#fde68a}
+  .callout .t{font-weight:700;color:var(--ink);margin-bottom:4px}
+
+  .shot{background:repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 12px,#eef2f7 12px,#eef2f7 24px);
+    border:2px dashed #cbd5e1;border-radius:14px;padding:30px;text-align:center;color:var(--muted);margin:14px 0;font-size:14px}
+  .shot .lbl{font-weight:700;color:var(--ink2);display:block;margin-bottom:4px;font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+
+  .faq{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}
+  .faq summary{padding:15px 18px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;font-size:15.5px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary:before{content:"+";color:var(--brand);font-weight:800;margin-right:10px}
+  .faq[open] summary:before{content:"–"}
+  .faq .a{padding:0 18px 16px;color:var(--ink2);font-size:14.5px}
+
+  .badge{display:inline-block;background:var(--amber-bg);color:var(--warn);border:1px solid #fde68a;
+    padding:1px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;vertical-align:middle}
+  .badge.live{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .pillrow span{background:var(--soft);color:var(--brand);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600}
+  .footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  .role-card{border-left:4px solid var(--brand);background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:16px 20px;margin:12px 0}
+  .role-card h4{margin:0 0 4px;color:var(--ink);font-size:16.5px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand"><span class="logo">HR</span> HRMS SaaS</div>
+      <div class="brand-sub">Business Guide</div>
+    </div>
+    <div class="search"><input id="navSearch" type="text" placeholder="Search this guide…" autocomplete="off"></div>
+    <nav id="nav">
+      <div class="group">Understand the Product</div>
+      <a href="#what">What is this platform?</a>
+      <a href="#why">Why it was built</a>
+      <a href="#who">Who should use it</a>
+      <a href="#benefits">Key benefits</a>
+      <div class="group">How It Works</div>
+      <a href="#saas">The subscription model</a>
+      <a href="#tenant">Multi-tenant, in plain words</a>
+      <a href="#subscribe">Subscribe, upgrade &amp; add-ons</a>
+      <div class="group">The Modules</div>
+      <a href="#employee">Employee management</a>
+      <a href="#attendance">Attendance</a>
+      <a href="#leave">Leave</a>
+      <a href="#payroll">Payroll</a>
+      <a href="#billing">Subscription billing</a>
+      <div class="group">People &amp; Roles</div>
+      <a href="#roles">User roles explained</a>
+      <a href="#dashboards">Dashboards, menus &amp; reports</a>
+      <div class="group">Journeys</div>
+      <a href="#journey-emp">Employee journey</a>
+      <a href="#journey-admin">Company admin journey</a>
+      <a href="#journey-super">Super admin journey</a>
+      <div class="group">Guides</div>
+      <a href="#onboarding">Customer onboarding</a>
+      <a href="#sales">Sales demo guide</a>
+      <a href="#investor">Investor overview</a>
+      <a href="#manual">Quick user manual</a>
+      <a href="#faq">FAQ</a>
+      <a href="#status-note">A note on readiness</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="hero">
+      <span class="tag">PRODUCT OVERVIEW · NON-TECHNICAL</span>
+      <h1>The HRMS SaaS Platform</h1>
+      <p>One simple system that helps companies manage their people — employees, attendance,
+      leave, and salary — while you run it as a subscription business. This guide explains the
+      whole product in plain language, with zero technical knowledge required.</p>
+    </div>
+
+    <h2 id="what">What is this platform?</h2>
+    <p class="lead">It is an online <strong>Human Resource Management System (HRMS)</strong> rented
+    by companies as a monthly or yearly subscription. Instead of every company buying and installing
+    their own software, they all log in to <strong>one shared platform on the internet</strong> — and
+    each company sees only its own private data.</p>
+    <p>Think of it like an apartment building. There is one building (the platform), but every
+    company lives in its own locked apartment (its own private workspace). Neighbours can never see
+    into each other's homes. You, the platform owner, are the landlord collecting rent.</p>
+    <div class="cards">
+      <div class="card"><div class="ic">🏢</div><h4>For companies</h4><p>A tidy place to manage staff, track attendance, approve leave, and run salaries.</p></div>
+      <div class="card"><div class="ic">💳</div><h4>For the business</h4><p>Predictable recurring revenue — companies pay every month or year to keep using it.</p></div>
+      <div class="card"><div class="ic">🔒</div><h4>For everyone</h4><p>Each company's information is completely private and secure from every other company.</p></div>
+    </div>
+
+    <h2 id="why">Why it was built — the problem it solves</h2>
+    <p>Most small and mid-sized companies still run HR on a messy mix of spreadsheets, paper
+    registers, and WhatsApp messages. That causes real pain:</p>
+    <table>
+      <thead><tr><th>The old way (the pain)</th><th>With this platform (the fix)</th></tr></thead>
+      <tbody>
+        <tr><td>Attendance tracked on paper or Excel, easy to lose or fudge</td><td>Attendance recorded in one place, automatically</td></tr>
+        <tr><td>Leave requests over chat — no record of who approved what</td><td>Clear leave requests with an approval trail</td></tr>
+        <tr><td>Salary calculated by hand every month — slow and error-prone</td><td>Payroll calculated from attendance and leave automatically</td></tr>
+        <tr><td>Employee details scattered across files</td><td>One reliable employee directory</td></tr>
+        <tr><td>No single view for the owner</td><td>Dashboards that show the whole company at a glance</td></tr>
+      </tbody>
+    </table>
+    <p>For the <strong>business owner of the platform</strong>, it solves a different problem: it turns
+    HR software into a <strong>repeatable, subscription revenue stream</strong> that can serve thousands
+    of companies from the same system.</p>
+
+    <h2 id="who">Who should use it</h2>
+    <div class="pillrow">
+      <span>Startups &amp; SMEs</span><span>Growing mid-size companies</span><span>HR teams</span>
+      <span>Company founders</span><span>Agencies managing multiple clients</span><span>Enterprises (higher tiers)</span>
+    </div>
+    <p>Any company that has employees and wants to stop doing HR by hand. The platform scales from a
+    small team of 25 people on the Starter plan up to large organisations of 500+ on Enterprise.</p>
+
+    <h2 id="benefits">Key benefits</h2>
+    <div class="cards">
+      <div class="card"><div class="ic">⏱️</div><h4>Saves time</h4><p>Automates attendance-to-payroll so HR spends minutes, not days.</p></div>
+      <div class="card"><div class="ic">✅</div><h4>Fewer mistakes</h4><p>Salary and leave are calculated by rules, not by hand.</p></div>
+      <div class="card"><div class="ic">📊</div><h4>Clear visibility</h4><p>Owners and HR see attendance, leave, and headcount instantly.</p></div>
+      <div class="card"><div class="ic">🧩</div><h4>Pay for what you use</h4><p>Buy only the modules you need; add more as you grow.</p></div>
+      <div class="card"><div class="ic">🔐</div><h4>Private &amp; safe</h4><p>Strong data separation between companies and secure logins.</p></div>
+      <div class="card"><div class="ic">📈</div><h4>Grows with you</h4><p>Add employees and modules anytime without switching systems.</p></div>
+    </div>
+
+    <h2 id="saas">How the SaaS subscription model works</h2>
+    <div class="section-intro">A subscription means a company pays a recurring fee to keep using the
+    platform — like Netflix, but for HR. The price is made of three simple parts.</div>
+    <h3>The three parts of the price</h3>
+    <ol>
+      <li><strong>A base plan</strong> — a monthly (or yearly) fee that includes a set number of employee "seats" and a bundle of modules.</li>
+      <li><strong>Extra seats</strong> — if the company has more employees than the plan includes, each extra person costs a small per-seat fee.</li>
+      <li><strong>Add-ons</strong> — optional extras (like an additional module) can be added to a subscription.</li>
+    </ol>
+    <h3>The plans available today</h3>
+    <table>
+      <thead><tr><th>Plan</th><th>Price / month</th><th>Employees included</th><th>Extra seat</th><th>Free trial</th><th>What's included</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Starter</strong></td><td>₹999</td><td>25</td><td>₹20 each</td><td>14 days</td><td>Attendance + Leave</td></tr>
+        <tr><td><strong>Growth</strong></td><td>₹2,999</td><td>100</td><td>₹30 each</td><td>14 days</td><td>Attendance + Leave + Payroll</td></tr>
+        <tr><td><strong>Enterprise</strong></td><td>₹9,999</td><td>500</td><td>₹25 each</td><td>30 days</td><td>Everything + unlimited employees</td></tr>
+      </tbody>
+    </table>
+    <h3>What happens over the life of a subscription</h3>
+    <div class="journey">
+      <div class="step"><span class="n">1</span><div class="b"><h4>Free trial</h4><p>A new company tries the platform free for 14–30 days with full access.</p></div></div>
+      <div class="step"><span class="n">2</span><div class="b"><h4>Active</h4><p>Once they pay, the subscription is active and renews each period.</p></div></div>
+      <div class="step"><span class="n">3</span><div class="b"><h4>Grace period</h4><p>If a payment is missed, there's a short grace window where access continues while they sort it out.</p></div></div>
+      <div class="step"><span class="n">4</span><div class="b"><h4>Expired / paused</h4><p>If still unpaid, access pauses. <strong>Their data is never deleted</strong> — it's simply locked.</p></div></div>
+      <div class="step"><span class="n">5</span><div class="b"><h4>Reactivated</h4><p>The moment they pay again, everything comes back exactly as it was.</p></div></div>
+    </div>
+    <div class="callout tip"><div class="t">The golden rule</div>Pausing a subscription only switches off
+    <em>access</em>. A company's employees, attendance history, and records are always kept safe and
+    return instantly on reactivation.</div>
+
+    <h2 id="tenant">Multi-tenant SaaS, in plain words</h2>
+    <p>"Multi-tenant" simply means <strong>many companies share one platform but each keeps a private
+    space</strong>. Going back to the apartment-building picture:</p>
+    <ul>
+      <li>One building, many private apartments = one platform, many private company workspaces.</li>
+      <li>A company can never accidentally see another company's employees, salaries, or attendance.</li>
+      <li>The platform owner can see the building as a whole (how many companies, total revenue) — but staff inside a company only see their own company.</li>
+    </ul>
+    <p>This design is what lets the business serve thousands of companies efficiently while keeping
+    everyone's data separate and safe.</p>
+
+    <h2 id="subscribe">How companies subscribe, upgrade &amp; buy add-ons</h2>
+    <table>
+      <thead><tr><th>Action</th><th>What the company does</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Subscribe</strong></td><td>Sign up, pick a plan, start the free trial, then pay</td><td>Their private workspace and admin account are created instantly <span class="badge live">LIVE</span></td></tr>
+        <tr><td><strong>Upgrade plan</strong></td><td>Move from Starter to Growth/Enterprise</td><td>New modules unlock immediately; they pay the difference <span class="badge">PLANNED</span></td></tr>
+        <tr><td><strong>Downgrade</strong></td><td>Move to a smaller plan</td><td>Takes effect at the next billing period so the paid time isn't lost <span class="badge">PLANNED</span></td></tr>
+        <tr><td><strong>Add-ons</strong></td><td>Buy an extra module or more seats</td><td>Added to their subscription and reflected on the invoice <span class="badge">PLANNED</span></td></tr>
+        <tr><td><strong>Add employees</strong></td><td>Add staff one-by-one or import a list</td><td>Allowed up to the seat limit; beyond that they're prompted to buy seats/upgrade <span class="badge live">SEAT RULES LIVE</span></td></tr>
+      </tbody>
+    </table>
+    <div class="callout note"><div class="t">A quick honesty note</div>Signing up, getting a workspace and
+    admin, starting a trial, and the seat-limit rules all work today. Online plan-upgrade and card
+    payment screens are planned next (see "A note on readiness" at the end).</div>
+
+    <h2 id="employee">Module: Employee Management</h2>
+    <p>The heart of the system — a clean directory of everyone in the company.</p>
+    <ul>
+      <li>Store each employee's profile: name, code, contact, department, designation, manager, joining date.</li>
+      <li>Organise people into departments and job titles.</li>
+      <li>Add staff individually or bulk-import a whole list at once <span class="badge">PLANNED</span>.</li>
+      <li>Link an employee to a login so they can use the self-service portal.</li>
+    </ul>
+    <div class="shot"><span class="lbl">Screenshot placeholder</span>Employee directory — searchable list with department, role, and status columns.</div>
+
+    <h2 id="attendance">Module: Attendance Management <span class="badge">PLANNED</span></h2>
+    <p>Tracks who worked, when, and for how long. Two ways to use it:</p>
+    <div class="cards">
+      <div class="card"><div class="ic">🧑‍💼</div><h4>HR marks attendance</h4><p>HR sets Present / Absent / Half-day / Leave for staff, individually or in bulk for a date.</p></div>
+      <div class="card"><div class="ic">📲</div><h4>Employee self check-in</h4><p>Staff check in and out themselves; the system calculates working hours and overtime.</p></div>
+    </div>
+    <p>It produces daily, weekly, and monthly attendance reports, and feeds payroll so salaries reflect
+    real attendance. Future capture options include GPS, QR codes, and biometric devices.</p>
+    <div class="shot"><span class="lbl">Screenshot placeholder</span>Monthly attendance grid with present/absent colour coding and an overtime summary.</div>
+
+    <h2 id="leave">Module: Leave Management <span class="badge">PLANNED</span></h2>
+    <ul>
+      <li>Define leave types (paid, sick, unpaid) and policies (how much accrues, carry-forward rules).</li>
+      <li>Employees request leave; managers and HR approve or reject it with a clear record.</li>
+      <li>Approved leave automatically reflects in attendance and in payroll deductions.</li>
+      <li>A shared calendar shows who is away and when.</li>
+    </ul>
+    <div class="shot"><span class="lbl">Screenshot placeholder</span>Leave request screen with balance remaining and an approval timeline.</div>
+
+    <h2 id="payroll">Module: Payroll Management <span class="badge">PLANNED</span></h2>
+    <p>Turns attendance and salary structures into accurate monthly pay.</p>
+    <ul>
+      <li>Set up each employee's salary made of components (Basic, HRA, allowances, deductions, tax).</li>
+      <li>Run payroll for a month: review → approve → process → publish payslips.</li>
+      <li>It automatically accounts for attendance, overtime, and unpaid leave.</li>
+      <li>Each employee gets a payslip they can download; HR gets summary and tax reports.</li>
+    </ul>
+    <div class="callout tip"><div class="t">Designed to be fast</div>The goal is a payroll run completed in
+    just a few clicks, with a guided review screen so nothing is missed.</div>
+    <div class="shot"><span class="lbl">Screenshot placeholder</span>Payroll run review — list of employees with gross, deductions, and net pay before publishing.</div>
+
+    <h2 id="billing">How subscription billing works <span class="badge">PLANNED</span></h2>
+    <p>Billing is how the platform collects money from companies.</p>
+    <ul>
+      <li>Each period, the platform creates an invoice for the company (base plan + extra seats + add-ons + tax/GST).</li>
+      <li>The company pays online through a payment gateway (such as Razorpay, Cashfree, or PayU).</li>
+      <li>Successful payments keep the subscription active; failed payments trigger reminders and a grace period.</li>
+      <li>Companies and the platform owner can view and download invoices.</li>
+    </ul>
+    <div class="shot"><span class="lbl">Screenshot placeholder</span>Invoice view with line items, GST, total, and a "Pay now" button.</div>
+
+    <h2 id="roles">User roles — who can do what</h2>
+    <p>The platform recognises five kinds of users. Each sees a different version of the system suited
+    to their job.</p>
+
+    <div class="role-card"><h4>👑 Super Admin <span class="badge live">LIVE</span></h4>
+      <p><strong>The platform owner's team.</strong> Works across the whole platform (not inside any one
+      company). Creates subscription plans and modules, manages all companies, handles billing and
+      subscriptions, and views platform-wide revenue. Can step into a company to provide support.</p></div>
+    <div class="role-card"><h4>🏢 Company Admin <span class="badge live">LIVE</span></h4>
+      <p><strong>The boss of one company's workspace.</strong> Controls company settings, the subscription
+      and billing, user roles, and has full access to every module the company has subscribed to.</p></div>
+    <div class="role-card"><h4>👩‍💼 HR Manager</h4>
+      <p>Runs day-to-day HR: manages employees, attendance, and leave, and runs payroll. Cannot change
+      billing or the subscription.</p></div>
+    <div class="role-card"><h4>🧑‍🤝‍🧑 Manager</h4>
+      <p>Looks after their team: approves their team's leave, views team attendance and profiles, and
+      sees their own payslip.</p></div>
+    <div class="role-card"><h4>🙋 Employee</h4>
+      <p>Self-service only: marks their own attendance, requests leave, downloads their own payslips,
+      and updates their profile.</p></div>
+
+    <h3>Quick comparison</h3>
+    <table>
+      <thead><tr><th>Can they…</th><th>Super&nbsp;Admin</th><th>Company&nbsp;Admin</th><th>HR&nbsp;Manager</th><th>Manager</th><th>Employee</th></tr></thead>
+      <tbody>
+        <tr><td>Create plans &amp; manage all companies</td><td>✅</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Manage their company's subscription &amp; billing</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Add / edit employees</td><td>✅</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Run payroll</td><td>✅</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Approve leave</td><td>✅</td><td>✅</td><td>✅</td><td>team</td><td>—</td></tr>
+        <tr><td>Request leave / self check-in</td><td>—</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>View own payslip</td><td>—</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="dashboards">Dashboards, menus &amp; reports</h2>
+    <p>Each role gets a tailored home screen and menu. <span class="badge">PLANNED — visual app</span></p>
+    <div class="cards">
+      <div class="card"><div class="ic">👑</div><h4>Super Admin dashboard</h4><p>Total revenue (MRR/ARR), number of active companies, subscriptions expiring soon, failed payments. Menus: Companies, Plans, Modules, Subscriptions, Billing, Audit.</p></div>
+      <div class="card"><div class="ic">🏢</div><h4>Company Admin dashboard</h4><p>Employee count, attendance and leave summaries, subscription status. Menus: Employees, Attendance, Leave, Payroll, Departments, Settings, Subscription, Billing.</p></div>
+      <div class="card"><div class="ic">🙋</div><h4>Employee dashboard</h4><p>Today's attendance, leave balance, latest payslip. Menus: My Attendance, My Leave, Payslips, Profile.</p></div>
+    </div>
+    <h3>Reports the platform provides</h3>
+    <ul>
+      <li><strong>Attendance reports</strong> — daily, weekly, monthly, and per-employee summaries.</li>
+      <li><strong>Payroll reports</strong> — salary register, deductions, and tax reports.</li>
+      <li><strong>Employee reports</strong> — headcount, departments, joining trends.</li>
+      <li><strong>Platform reports (owner)</strong> — revenue, active companies, churn.</li>
+    </ul>
+    <p>Reports can be exported to PDF, Excel, or CSV. <span class="badge">PLANNED</span></p>
+
+    <h2 id="journey-emp">Journey: an everyday employee</h2>
+    <div class="journey">
+      <div class="step"><span class="n">1</span><div class="b"><h4>Login</h4><p>The employee signs in to their private self-service portal.</p></div></div>
+      <div class="step"><span class="n">2</span><div class="b"><h4>Mark attendance</h4><p>They check in for the day; the system records their hours.</p></div></div>
+      <div class="step"><span class="n">3</span><div class="b"><h4>Request leave</h4><p>Need a day off? They submit a leave request to their manager.</p></div></div>
+      <div class="step"><span class="n">4</span><div class="b"><h4>Download payslip</h4><p>At month end, they download their salary slip — no need to ask HR.</p></div></div>
+    </div>
+
+    <h2 id="journey-admin">Journey: a company admin</h2>
+    <div class="journey">
+      <div class="step"><span class="n">1</span><div class="b"><h4>Sign up</h4><p>Create the company account and start the free trial.</p></div></div>
+      <div class="step"><span class="n">2</span><div class="b"><h4>Choose a subscription</h4><p>Pick the plan that fits the team size and needs.</p></div></div>
+      <div class="step"><span class="n">3</span><div class="b"><h4>Add employees</h4><p>Import the staff list to populate the directory.</p></div></div>
+      <div class="step"><span class="n">4</span><div class="b"><h4>Track attendance</h4><p>Let staff check in, or have HR mark attendance.</p></div></div>
+      <div class="step"><span class="n">5</span><div class="b"><h4>Run payroll</h4><p>Process monthly salaries based on real attendance and leave.</p></div></div>
+      <div class="step"><span class="n">6</span><div class="b"><h4>Review reports</h4><p>Use dashboards and reports to keep an eye on the whole company.</p></div></div>
+    </div>
+
+    <h2 id="journey-super">Journey: the super admin (platform owner)</h2>
+    <div class="journey">
+      <div class="step"><span class="n">1</span><div class="b"><h4>Create plans</h4><p>Define the Starter / Growth / Enterprise plans and their prices and modules.</p></div></div>
+      <div class="step"><span class="n">2</span><div class="b"><h4>Manage companies</h4><p>See every company on the platform; support, suspend, or extend them.</p></div></div>
+      <div class="step"><span class="n">3</span><div class="b"><h4>Manage billing</h4><p>Oversee invoices and payments across all companies.</p></div></div>
+      <div class="step"><span class="n">4</span><div class="b"><h4>Manage subscriptions</h4><p>Watch renewals, upgrades, and revenue grow over time.</p></div></div>
+    </div>
+
+    <h2 id="onboarding">Customer onboarding guide</h2>
+    <p>How to get a brand-new company productive within minutes:</p>
+    <ol>
+      <li><strong>Sign up</strong> and confirm the company account.</li>
+      <li><strong>Pick a plan</strong> and start the free trial — no risk.</li>
+      <li><strong>Add or import employees</strong> to build the directory.</li>
+      <li><strong>Set up departments</strong> and assign managers.</li>
+      <li><strong>Turn on attendance</strong> — let staff check in or have HR mark it.</li>
+      <li><strong>Configure payroll</strong> (on Growth/Enterprise) and run the first cycle.</li>
+      <li><strong>Invite the team</strong> so employees can self-serve.</li>
+    </ol>
+    <div class="callout tip"><div class="t">Onboarding goal</div>A new customer should feel the value within
+    the first 10 minutes — a populated employee list and a working attendance screen.</div>
+
+    <h2 id="sales">Sales demonstration guide</h2>
+    <p>A simple script to show a prospective customer the value, in order:</p>
+    <ol>
+      <li><strong>Open with the pain:</strong> "How do you track attendance and run payroll today?" — most say spreadsheets.</li>
+      <li><strong>Show the employee directory:</strong> everything about every employee in one clean place.</li>
+      <li><strong>Show attendance:</strong> staff check in themselves; HR sees it live.</li>
+      <li><strong>Show leave:</strong> a request flows to a manager and back with a clear trail.</li>
+      <li><strong>Show payroll:</strong> attendance turns into accurate salaries in a few clicks.</li>
+      <li><strong>Show the dashboard:</strong> the owner's at-a-glance view.</li>
+      <li><strong>Close on pricing:</strong> start free, pay only for the plan and seats you need, add modules as you grow.</li>
+    </ol>
+
+    <h2 id="investor">Investor / product overview</h2>
+    <div class="cards">
+      <div class="card"><div class="ic">💡</div><h4>The opportunity</h4><p>Millions of SMEs still run HR manually. A simple, affordable HRMS is a large, recurring-revenue market.</p></div>
+      <div class="card"><div class="ic">🔁</div><h4>The model</h4><p>Subscription SaaS: predictable monthly revenue that grows with each company's headcount and module adoption.</p></div>
+      <div class="card"><div class="ic">📐</div><h4>The moat</h4><p>Modular, multi-tenant design lets one platform serve thousands of companies and upsell modules over time.</p></div>
+      <div class="card"><div class="ic">🚀</div><h4>Expansion</h4><p>Clear roadmap to add Recruitment, Performance, Assets, mobile apps, and AI analytics without rebuilding.</p></div>
+    </div>
+    <p><strong>How the business makes money:</strong> base subscription + per-seat fees as companies hire +
+    add-on modules + higher tiers as companies grow. Revenue compounds because customers tend to add
+    more employees and modules over time, not fewer.</p>
+
+    <h2 id="manual">Quick user manual</h2>
+    <table>
+      <thead><tr><th>I want to…</th><th>Here's how</th></tr></thead>
+      <tbody>
+        <tr><td>Start using the platform</td><td>Sign up your company, pick a plan, begin the free trial.</td></tr>
+        <tr><td>Add my staff</td><td>Go to Employees → add one-by-one or import a list.</td></tr>
+        <tr><td>Let staff mark attendance</td><td>Invite employees; they log in and check in/out daily.</td></tr>
+        <tr><td>Approve a leave request</td><td>Managers/HR open the request and approve or reject it.</td></tr>
+        <tr><td>Run salaries</td><td>Open Payroll, pick the month, review, and publish payslips.</td></tr>
+        <tr><td>Add more employees than my plan allows</td><td>Buy extra seats or upgrade your plan.</td></tr>
+        <tr><td>See my payslip (as an employee)</td><td>Open Payslips in your self-service portal and download.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="faq">Frequently asked questions</h2>
+    <details class="faq"><summary>Is my company's data private from other companies?</summary><div class="a">Yes, completely. Every company has its own walled-off workspace; no company can ever see another's data. This separation is built into the core of the platform.</div></details>
+    <details class="faq"><summary>What happens to our data if we stop paying?</summary><div class="a">Access is paused, but your data is never deleted. The moment you reactivate, everything returns exactly as it was.</div></details>
+    <details class="faq"><summary>Can we start without paying?</summary><div class="a">Yes. Every plan comes with a free trial (14 days on Starter/Growth, 30 days on Enterprise) with full access.</div></details>
+    <details class="faq"><summary>Do we have to buy every module?</summary><div class="a">No. You only pay for the plan you choose, and you can add modules later as you grow.</div></details>
+    <details class="faq"><summary>What if we hire more people than our plan includes?</summary><div class="a">You can add extra "seats" for a small per-employee fee, or upgrade to a bigger plan.</div></details>
+    <details class="faq"><summary>Does payroll account for leave and absences?</summary><div class="a">Yes — when Attendance and Leave are active, payroll automatically reflects working days, overtime, and unpaid leave.</div></details>
+    <details class="faq"><summary>Can employees use it themselves?</summary><div class="a">Yes. Employees get a self-service portal to check in, request leave, and download payslips — reducing the load on HR.</div></details>
+    <details class="faq"><summary>Which payments are supported?</summary><div class="a">The platform is designed to work with popular gateways like Razorpay, Cashfree, and PayU. Online payment screens are part of the upcoming billing release.</div></details>
+
+    <h2 id="status-note">A note on readiness (full transparency)</h2>
+    <div class="callout amber">
+      <div class="t">What works today vs. what's coming</div>
+      <p>This guide describes the full product vision. To be completely honest with stakeholders, here
+      is where things stand right now:</p>
+      <p><strong>Working today:</strong> company sign-up, private workspaces, secure logins, user roles
+      and permissions, the subscription plans and rules (including seat limits), and the engine that
+      decides which features each company can access.</p>
+      <p><strong>Coming next:</strong> the visual web app screens, the attendance / leave / payroll
+      day-to-day features, and online billing/payments. The foundation they build on is already in
+      place, so these are additions rather than rebuilds.</p>
+      <p>For the precise engineering status, your technical team can refer to the companion
+      <em>Technical Handbook</em> (<code>documentation.html</code>).</p>
+    </div>
+
+    <div class="footer">
+      <p><b>HRMS SaaS — Business Guide.</b> A non-technical overview for founders, HR teams, sales,
+      and investors. For implementation detail, deployment, and developer onboarding, see the
+      companion Technical Handbook (<code>documentation.html</code>).</p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function onScroll(){
+    var pos = window.scrollY + 140, current = null;
+    sections.forEach(function(s){ if(s.offsetTop <= pos) current = s; });
+    links.forEach(function(a){ a.classList.toggle('active', current && a.getAttribute('href') === '#'+current.id); });
+  }
+  window.addEventListener('scroll', onScroll); onScroll();
+
+  var search = document.getElementById('navSearch');
+  search.addEventListener('input', function(){
+    var q = this.value.toLowerCase().trim();
+    links.forEach(function(a){
+      var match = a.textContent.toLowerCase().indexOf(q) !== -1;
+      a.style.display = (q === '' || match) ? '' : 'none';
+    });
+    document.querySelectorAll('#nav .group').forEach(function(g){ g.style.display = q === '' ? '' : 'none'; });
+  });
+})();
+</script>
+</body>
+</html>
