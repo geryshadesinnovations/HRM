@@ -173,14 +173,16 @@
 
     <div class="callout note">
       <div class="t">Read this first — what state is the project in?</div>
-      This repository is the <b>foundation + platform spine</b> of the platform. The
-      multi-tenant core, JWT identity, RBAC, and the subscription engine are <b>fully implemented and tested</b>.
-      The business modules (Attendance, Leave, Payroll), the billing gateway adapters, and the
-      Next.js frontend are <b>designed but not yet coded</b>. Throughout this handbook, every feature is
-      tagged so a new team knows exactly what exists today:
+      This repository now contains a <b>complete, tested backend product</b>. The original foundation
+      (multi-tenancy, JWT identity, RBAC, subscription engine) plus the full business suite —
+      <b>Employee/Core-HR, Attendance, Leave, Payroll, and Billing</b> — and the <b>subscription
+      lifecycle automation</b> are all implemented and covered by a passing test suite (25 tests).
+      The remaining work is the <b>Next.js frontend</b> and production hardening (real gateway
+      adapters, notifications, MFA, reporting exports). Every capability below is tagged so a new
+      team knows exactly what exists today:
       <div class="legend">
-        <span><span class="pill built">BUILT</span> implemented &amp; in the codebase</span>
-        <span><span class="pill part">PARTIAL</span> scaffolding/data present, logic pending</span>
+        <span><span class="pill built">BUILT</span> implemented &amp; in the codebase (test-covered)</span>
+        <span><span class="pill part">PARTIAL</span> core works; advanced sub-features pending</span>
         <span><span class="pill plan">PLANNED</span> specified in <code>docs/</code>, not yet coded</span>
       </div>
     </div>
@@ -199,22 +201,26 @@
         <tr><td>RBAC: 5 roles, ~30 permissions (Spatie)</td><td><span class="pill built">BUILT</span></td><td><code>database/seeders/RolePermissionSeeder.php</code></td></tr>
         <tr><td>Standard API envelope + error codes</td><td><span class="pill built">BUILT</span></td><td><code>app/Platform/Http/ApiResponse.php</code>, <code>Support/ErrorCode.php</code></td></tr>
         <tr><td>Auth API endpoints (register/login/refresh/logout/me/entitlements)</td><td><span class="pill built">BUILT</span></td><td><code>routes/api.php</code>, <code>Http/Controllers/Api/V1/AuthController.php</code></td></tr>
-        <tr><td>Core HR tables (companies, employees, departments, designations)</td><td><span class="pill part">PARTIAL</span></td><td>migrations + <code>Employee</code>/<code>Company</code> models only; no CRUD services/controllers yet</td></tr>
-        <tr><td>Module catalog seeded (attendance, leave, payroll, +4)</td><td><span class="pill part">PARTIAL</span></td><td><code>ModuleSeeder.php</code> — sellable metadata exists, domain logic does not</td></tr>
-        <tr><td>Attendance / Leave / Payroll business logic + tables</td><td><span class="pill plan">PLANNED</span></td><td>specced in <code>docs/06-MODULES.md</code> (Phase 3–4)</td></tr>
-        <tr><td>Billing engine, gateway adapters, invoices, webhooks</td><td><span class="pill plan">PLANNED</span></td><td>config only (<code>config/billing.php</code>); see <code>docs/04-BILLING.md</code> (Phase 2)</td></tr>
-        <tr><td>Subscription lifecycle jobs (sweep / renew / dunning)</td><td><span class="pill plan">PLANNED</span></td><td>scheduler container runs, no tasks registered yet</td></tr>
+        <tr><td>Core HR tables + Employee/Department/Designation CRUD (seat-gated)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Employee/*</code>, <code>Http/Controllers/Api/V1/EmployeeController.php</code>, <code>DepartmentController.php</code></td></tr>
+        <tr><td>Module catalog seeded (attendance, leave, payroll, +4)</td><td><span class="pill built">BUILT</span></td><td><code>ModuleSeeder.php</code> — sellable metadata + working domain logic</td></tr>
+        <tr><td>Attendance module (HR marking, self check-in/out, worked/OT minutes)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Attendance/*</code>, <code>AttendanceController.php</code></td></tr>
+        <tr><td>Leave module (types, balances, request→approve/reject, attendance sync)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Leave/*</code>, <code>LeaveController.php</code></td></tr>
+        <tr><td>Payroll module (components, structures, runs, payslips, LOP proration)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Payroll/*</code>, <code>PayrollController.php</code></td></tr>
+        <tr><td>Billing engine, gateway abstraction, invoices, idempotent webhooks</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Billing/*</code>, <code>SubscriptionController.php</code>, <code>WebhookController.php</code></td></tr>
+        <tr><td>Subscription lifecycle job (trial→expired, active→grace→expired)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Subscription/Console/SweepSubscriptions.php</code>, scheduled hourly in <code>routes/console.php</code></td></tr>
+        <tr><td>Real payment gateway adapters (Razorpay/Cashfree/PayU)</td><td><span class="pill part">PARTIAL</span></td><td>contract + <code>ManualGateway</code> + <code>GatewayManager</code> done; provider adapters pending</td></tr>
         <tr><td>Next.js frontend (3 personas, command palette)</td><td><span class="pill plan">PLANNED</span></td><td>specced in <code>docs/10-FRONTEND-UX.md</code> (Phase 5)</td></tr>
-        <tr><td>Reporting engine, notifications, MFA, audit logs</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code>, <code>docs/09</code> (Phase 6)</td></tr>
+        <tr><td>Reporting exports, notifications, MFA, audit logs</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code>, <code>docs/09</code> (Phase 6)</td></tr>
         <tr><td>Infra: docker-compose, PHP-FPM image, Nginx, CI</td><td><span class="pill built">BUILT</span></td><td><code>infra/</code>, <code>.github/workflows/ci.yml</code></td></tr>
       </tbody>
     </table>
     <div class="callout ok">
-      <div class="t">Why the foundation matters</div>
-      The "hard" architectural decisions — tenant isolation that cannot be bypassed by accident, an
-      entitlement engine with zero hardcoded plan logic, and a clean service layering — are already
-      in place and covered by tests. Building the remaining modules is now <b>additive</b> work that
-      follows the patterns documented here.
+      <div class="t">What this means for a new owner</div>
+      The hard architectural decisions — tenant isolation that cannot be bypassed by accident, an
+      entitlement engine with zero hardcoded plan logic, clean service layering — are in place and
+      every business module (HR, Attendance, Leave, Payroll, Billing) is built on top of them and
+      covered by tests. The backend is a working product end-to-end. The main remaining effort is the
+      <b>customer-facing web UI</b> and production hardening, both of which consume this same API.
     </div>
 
 
@@ -295,8 +301,8 @@ Cache/Queue → Redis      Async → queue workers (Horizon-ready)
 
     <h3 id="requestflow">2.2 Request flow: from browser to database</h3>
     <p>This is the exact lifecycle of an authenticated, tenant-scoped, subscription-gated request,
-    using a hypothetical <code>module:payroll</code> route as the example. Steps 1–6 are wired today;
-    the payroll handler itself is planned.</p>
+    using the real <code>POST /api/v1/payroll/runs</code> route as the example. Every step below is
+    wired and test-covered today.</p>
     <div class="diagram"><pre>
 1. Client sends  POST /api/v1/payroll/runs   with  Authorization: Bearer &lt;access&gt;
 
@@ -347,29 +353,42 @@ HRM/
 backend/app/
 ├── Domains/                 business contexts (DDD-style)
 │   ├── Company/Models/Company.php          tenant root entity
-│   ├── Employee/Models/Employee.php        tenant-owned, seat economics
-│   ├── Identity/Services/
-│   │   ├── AuthService.php                 login / refresh / logout
-│   │   └── CompanyRegistrationService.php  signup → company+admin+trial sub
+│   ├── Employee/                           Core HR
+│   │   ├── Models/{Employee,Department,Designation}.php
+│   │   └── Services/EmployeeService.php     seat-gated create/update
+│   ├── Attendance/                         module:attendance
+│   │   ├── Models/{AttendanceRecord,Shift}.php
+│   │   └── Services/AttendanceService.php   mark / self check-in-out
+│   ├── Leave/                              module:leave
+│   │   ├── Models/{LeaveType,LeaveBalance,LeaveRequest,LeaveRequestApproval}.php
+│   │   └── Services/LeaveService.php        request → approve/reject (+attendance sync)
+│   ├── Payroll/                            module:payroll
+│   │   ├── Models/{SalaryComponent,SalaryStructure,SalaryStructureLine,PayrollRun,Payslip}.php
+│   │   └── Services/PayrollService.php      run → payslips, LOP proration
+│   ├── Billing/                            invoices, payments, gateways
+│   │   ├── Models/{Invoice,InvoiceLine,Payment,WebhookEvent}.php
+│   │   ├── Contracts/PaymentGateway.php  Gateways/ManualGateway.php
+│   │   └── Services/{GatewayManager,InvoiceService,TaxCalculator}.php
+│   ├── Identity/Services/                   AuthService, CompanyRegistrationService
 │   └── Subscription/
-│       ├── Contracts/FeatureAccess.php     the gate interface
-│       ├── Enums/SubscriptionStatus.php    trial|active|grace|expired|...
+│       ├── Console/SweepSubscriptions.php   hourly lifecycle sweep
+│       ├── Contracts/FeatureAccess.php      the gate interface
+│       ├── Enums/SubscriptionStatus.php     trial|active|grace|expired|...
 │       ├── Models/{Plan,Module,Feature,Subscription}.php
-│       └── Services/
-│           ├── SubscriptionEngine.php      resolves entitlement (+Redis cache)
-│           ├── Entitlement.php             immutable resolved snapshot
-│           └── FeatureAccessService.php    enforces module/feature/seat gates
+│       └── Services/{SubscriptionEngine,Entitlement,FeatureAccessService,SubscriptionService}.php
 ├── Http/
-│   ├── Controllers/Api/V1/AuthController.php
+│   ├── Controllers/Api/V1/  Auth, Employee, Department, Attendance,
+│   │                        Leave, Payroll, Subscription, Webhook
 │   ├── Middleware/{ResolveTenant,EnsureModuleAccess,EnsureFeatureAccess}.php
-│   └── Requests/Auth/{LoginRequest,RegisterCompanyRequest}.php
+│   ├── Requests/  Auth/* , Employee/{Store,Update}EmployeeRequest.php
+│   └── Resources/EmployeeResource.php
 ├── Models/User.php           platform+tenant user (Spatie HasRoles, JwtSubject)
 ├── Platform/                 cross-cutting infrastructure
 │   ├── Auth/{JwtGuard,JwtService}.php  Auth/Models/RefreshToken.php
 │   ├── Concerns/HasUuid.php             public UUIDs + route binding
 │   ├── Exceptions/ApiException.php      renders standard error envelope
 │   ├── Http/ApiResponse.php             success/paginated/error helpers
-│   ├── Support/ErrorCode.php            canonical error code enum
+│   ├── Support/{ErrorCode.php, Money.php}  error codes + money value object
 │   └── Tenancy/{TenantContext,BelongsToTenant}.php  Scopes/TenantScope.php
 └── Providers/PlatformServiceProvider.php  wires tenancy, JWT guard, engine
     </pre></div>
@@ -382,11 +401,12 @@ backend/app/
         <tr><td><code>Providers/PlatformServiceProvider.php</code></td><td>Boots the platform spine: binds <code>TenantContext</code> (scoped per request), <code>JwtService</code> (singleton), <code>SubscriptionEngine</code> &amp; <code>FeatureAccess</code> (scoped), and registers the <code>jwt</code> auth driver. Runs at boot.</td><td>Auth guard, tenancy, all gating</td></tr>
         <tr><td><code>Platform/Tenancy/TenantContext.php</code></td><td>Holds the active company id for the request/job. Offers <code>forCompany()</code> (impersonate) and <code>bypass()</code> (platform ops). Read by the global scope on every query.</td><td><code>TenantScope</code>, <code>BelongsToTenant</code>, services</td></tr>
         <tr><td><code>Platform/Tenancy/Scopes/TenantScope.php</code></td><td>Global Eloquent scope. Adds <code>WHERE company_id=?</code>; if no tenant and not bypassed, forces <code>1=0</code> (<b>fail-closed</b>). Runs on every query of a tenant model.</td><td>Every model using <code>BelongsToTenant</code></td></tr>
-        <tr><td><code>Domains/Subscription/Services/SubscriptionEngine.php</code></td><td>Loads subscription+plan+overrides, applies status gate, returns an <code>Entitlement</code>. Caches per company keyed by <code>updated_at</code>. Runs on first entitlement check per request.</td><td><code>FeatureAccessService</code>, <code>AuthController::entitlements</code></td></tr>
-        <tr><td><code>Domains/Subscription/Services/FeatureAccessService.php</code></td><td>The single gate. <code>assert('module:x')</code>, <code>feature:x</code>, <code>seat</code>, <code>payroll</code>. Throws <code>ApiException</code> (403). Runs in gate middleware and inside services.</td><td>Module/Feature middleware, future module services</td></tr>
+        <tr><td><code>Domains/Subscription/Services/SubscriptionEngine.php</code></td><td>Loads subscription+plan+overrides, applies status gate, returns an <code>Entitlement</code>. Caches per company under <code>entitlement:&lt;companyId&gt;</code> (1h TTL); <code>flush()</code> invalidates it on any change. Runs on first entitlement check per request.</td><td><code>FeatureAccessService</code>, <code>SubscriptionService</code>, <code>AuthController::entitlements</code></td></tr>
+        <tr><td><code>Domains/Subscription/Services/FeatureAccessService.php</code></td><td>The single gate. <code>assert('module:x')</code>, <code>feature:x</code>, <code>seat</code>, <code>payroll</code>. Throws <code>ApiException</code> (403). Runs in gate middleware and inside every module service.</td><td>Module/Feature middleware, Employee/Leave/Payroll services</td></tr>
         <tr><td><code>Platform/Auth/JwtGuard.php</code></td><td>Stateless guard for the <code>api</code> guard. Validates the Bearer access token, returns the authenticated user. Runs in <code>auth:api</code>.</td><td>All authenticated routes</td></tr>
         <tr><td><code>Domains/Identity/Services/AuthService.php</code></td><td>Issues token pairs, persists hashed refresh tokens, rotates on refresh, detects reuse (revokes whole chain). Runs on login/refresh/logout.</td><td><code>AuthController</code></td></tr>
-        <tr><td><code>routes/api.php</code></td><td>Defines all v1 routes. Public auth routes + a <code>auth:api,tenant</code> protected group (<code>logout</code>, <code>me</code>, <code>me/entitlements</code>).</td><td>HTTP entrypoint</td></tr>
+        <tr><td><code>routes/api.php</code></td><td>Defines all 48 v1 routes: public auth + webhooks, and an <code>auth:api,tenant</code> group covering identity, Core HR, and the <code>module:*</code>-gated Attendance/Leave/Payroll/Billing groups.</td><td>HTTP entrypoint</td></tr>
+        <tr><td><code>Domains/Subscription/Console/SweepSubscriptions.php</code></td><td>Hourly command advancing subscription states by date and flushing affected entitlement caches. Registered in <code>bootstrap/app.php</code>, scheduled in <code>routes/console.php</code>.</td><td>Scheduler container / cron</td></tr>
         <tr><td><code>database/seeders/*</code></td><td>Seed canonical modules/features, default plans, roles/permissions, and the super admin. Run via <code>php artisan db:seed</code>.</td><td>Fresh installs, CI, tests</td></tr>
       </tbody>
     </table>
@@ -436,7 +456,7 @@ backend/app/
     <code>role_has_permissions</code>. All on the <code>api</code> guard. A user's effective permissions =
     union of their roles' permissions. See §6.</p>
 
-    <h3>Core HR tables <span class="pill part">PARTIAL</span> (schema present, logic pending)</h3>
+    <h3>Core HR tables <span class="pill built">BUILT</span></h3>
     <table>
       <thead><tr><th>Table</th><th>Business use</th><th>Key columns &amp; constraints</th></tr></thead>
       <tbody>
@@ -445,12 +465,13 @@ backend/app/
         <tr><td><code>employees</code></td><td>The employee record. Drives <b>seat economics</b> (active count vs seat limit). Optionally linked to a login user.</td><td><code>uuid</code>, <code>company_id</code>, <code>user_id</code> (nullable), <code>employee_code</code>, <code>manager_id</code> (self-FK), <code>status</code> (active|on_leave|terminated); <b>unique <code>(company_id, employee_code)</code></b>; index <code>(company_id, status)</code>; soft-deletes.</td></tr>
       </tbody>
     </table>
-    <div class="callout note"><div class="t">Planned tables (designed in docs/02, not yet migrated)</div>
-      <code>invoices</code>, <code>invoice_lines</code>, <code>payments</code>, <code>webhook_events</code> (billing);
-      <code>attendance_records</code> (monthly range-partitioned), <code>shifts</code>;
-      <code>leave_types</code>, <code>leave_policies</code>, <code>leave_balances</code>, <code>leave_requests</code>;
-      <code>salary_components</code>, <code>salary_structures</code>, <code>payroll_runs</code>, <code>payslips</code>;
-      <code>audit_logs</code>, <code>notifications</code>, <code>mfa_secrets</code>, <code>login_histories</code>.
+    <div class="callout ok"><div class="t">Module tables now migrated &amp; in use</div>
+      <b>Billing:</b> <code>invoices</code>, <code>invoice_lines</code>, <code>payments</code>, <code>webhook_events</code> (unique <code>gateway,event_id</code> for idempotency).
+      <b>Attendance:</b> <code>attendance_records</code> (unique <code>company,employee,work_date</code>), <code>shifts</code>.
+      <b>Leave:</b> <code>leave_types</code>, <code>leave_balances</code>, <code>leave_requests</code>, <code>leave_request_approvals</code>.
+      <b>Payroll:</b> <code>salary_components</code>, <code>salary_structures</code>, <code>salary_structure_lines</code>, <code>payroll_runs</code>, <code>payslips</code>.
+      Migrations <code>2025_01_01_000040</code>–<code>000070</code>. <span class="pill plan">PLANNED</span> still:
+      <code>audit_logs</code>, <code>notifications</code>, <code>mfa_secrets</code>, <code>login_histories</code>, and Postgres range-partitioning of high-volume tables.
     </div>
 
     <h3>Indexing &amp; performance strategy</h3>
@@ -544,11 +565,13 @@ Entitlement(company) =
         <tr><td>cancelled</td><td><b>disabled</b></td><td>preserved</td><td>false</td></tr>
       </tbody>
     </table>
-    <div class="callout warn"><div class="t">Lifecycle transitions are PLANNED</div>
-      The status enum and gate are built. The scheduled jobs that <i>move</i> a subscription between
-      states (trial→expired, active→grace→expired, dunning/renewal) are designed in
-      <code>docs/03</code> but not yet implemented — the <code>scheduler</code> container runs but no tasks are
-      registered. Today, a status changes only when set directly (e.g. signup sets <code>trial</code>/<code>active</code>).</div>
+    <div class="callout ok"><div class="t">Lifecycle transitions are now automated</div>
+      The status enum, gate, and the date-driven transitions are all built. The
+      <code>subscriptions:sweep</code> command (scheduled hourly) advances trial→expired,
+      active→grace, and grace→expired, and flushes each affected company's entitlement cache so
+      access changes take effect immediately. Successful payments (via the webhook) reactivate a
+      blocked subscription; a failed payment moves it to <code>grace</code>. Dunning email sequences
+      are the remaining <span class="pill plan">PLANNED</span> piece (needs the notification layer).</div>
 
     <h3>Seeded plans (from <code>PlanSeeder.php</code>)</h3>
     <table>
@@ -627,26 +650,45 @@ JWT_ALGO=HS256</code></pre>
     <code>SUBSCRIPTION_INACTIVE</code> · <code>TENANT_MISMATCH</code> · <code>RATE_LIMITED</code> · <code>SERVER_ERROR</code></p>
 
     <h3>Implemented endpoints <span class="pill built">BUILT</span></h3>
-    <p>Public (no auth):</p>
+    <p>All endpoints below are routed and active. Protected routes require <code>auth:api</code> +
+    <code>tenant</code>; module routes add a <code>module:&lt;code&gt;</code> gate and each action a
+    <code>permission:&lt;code&gt;</code> gate. <code>php artisan route:list</code> shows 48 routes.</p>
+    <p><b>Public (no auth):</b></p>
     <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/register-company</span></div>
     <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/login</span></div>
     <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/refresh</span></div>
-    <p>Protected (<code>auth:api</code> + <code>tenant</code>):</p>
+    <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/webhooks/{gateway}</span><span class="filehit">signature-verified, idempotent</span></div>
+    <p><b>Identity (auth):</b></p>
     <div class="endpoint"><span class="verb post">POST</span><span>/api/v1/auth/logout</span></div>
     <div class="endpoint"><span class="verb get">GET</span><span>/api/v1/me</span></div>
     <div class="endpoint"><span class="verb get">GET</span><span>/api/v1/me/entitlements</span></div>
+    <p><b>Core HR:</b> <code>GET/POST /employees</code>, <code>GET/PATCH/DELETE /employees/{uuid}</code>,
+    <code>GET/POST/PATCH/DELETE /departments</code>, <code>GET/POST /designations</code>.</p>
+    <p><b>Attendance</b> (<code>module:attendance</code>): <code>POST /attendance/check-in</code>,
+    <code>/check-out</code>, <code>POST /attendance/mark</code> (single/bulk), <code>GET /attendance</code>.</p>
+    <p><b>Leave</b> (<code>module:leave</code>): <code>GET/POST /leave/types</code>,
+    <code>GET /leave/balances</code>, <code>GET/POST /leave/requests</code>,
+    <code>POST /leave/requests/{uuid}/approve|reject</code>, <code>GET /leave/calendar</code>.</p>
+    <p><b>Payroll</b> (<code>module:payroll</code>): <code>GET/POST /payroll/components</code>,
+    <code>GET/PUT /payroll/structures/{employee}</code>, <code>POST /payroll/runs</code>,
+    <code>POST /payroll/runs/{uuid}/process|publish</code>, <code>GET /payroll/runs/{uuid}/payslips</code>,
+    <code>GET /payslips/{uuid}</code>.</p>
+    <p><b>Subscription &amp; Billing:</b> <code>GET /plans</code>, <code>GET /subscription</code>,
+    <code>POST /subscription/upgrade|downgrade|cancel|reactivate</code>,
+    <code>GET /invoices</code>, <code>GET /invoices/{uuid}</code>, <code>POST /billing/checkout</code>.</p>
     <p>Plus Laravel's health check at <code>GET /up</code>.</p>
 
-    <h4>Endpoint details</h4>
+    <h4>Endpoint details (representative)</h4>
     <table>
-      <thead><tr><th>Endpoint</th><th>Auth</th><th>Request body</th><th>Response <code>data</code></th></tr></thead>
+      <thead><tr><th>Endpoint</th><th>Gates</th><th>Request body</th><th>Response <code>data</code></th></tr></thead>
       <tbody>
-        <tr><td><code>POST /auth/register-company</code></td><td>none</td><td><code>company_name</code>, <code>admin_name</code>, <code>email</code>, <code>password</code>+<code>password_confirmation</code> (min 8), optional <code>plan_code</code> (must exist)</td><td><code>company</code>, <code>user</code>, <code>tokens</code> — creates company + Company Admin user + trial subscription (HTTP 201)</td></tr>
-        <tr><td><code>POST /auth/login</code></td><td>none</td><td><code>email</code>, <code>password</code></td><td><code>user</code> (uuid, roles, permissions, is_super_admin, company_id) + <code>tokens</code> (access, refresh, token_type, expires_in)</td></tr>
-        <tr><td><code>POST /auth/refresh</code></td><td>refresh token in body</td><td><code>refresh_token</code></td><td>new <code>user</code> + rotated <code>tokens</code></td></tr>
-        <tr><td><code>POST /auth/logout</code></td><td>access token</td><td>—</td><td>revokes all active refresh tokens for the user</td></tr>
-        <tr><td><code>GET /me</code></td><td>access token</td><td>—</td><td>profile + roles + permissions</td></tr>
-        <tr><td><code>GET /me/entitlements</code></td><td>access token</td><td>—</td><td>resolved entitlement: <code>status</code>, <code>access_granted</code>, <code>modules[]</code>, <code>features{}</code>, <code>seats{included,purchased,limit}</code></td></tr>
+        <tr><td><code>POST /auth/register-company</code></td><td>none</td><td><code>company_name</code>, <code>admin_name</code>, <code>email</code>, <code>password</code>+<code>password_confirmation</code> (min 8), optional <code>plan_code</code></td><td><code>company</code>, <code>user</code>, <code>tokens</code> — creates company + Company Admin + trial subscription (201)</td></tr>
+        <tr><td><code>POST /employees</code></td><td><code>employee.profile.create</code> + seat gate</td><td><code>employee_code</code>, <code>first_name</code>, optional <code>last_name/email/phone/department_id/designation_id/manager_id/date_of_joining/status</code></td><td>created employee; <code>403 SEAT_LIMIT_REACHED</code> when over the plan's seat allowance</td></tr>
+        <tr><td><code>POST /attendance/mark</code></td><td><code>module:attendance</code> + <code>attendance.mark</code></td><td>single <code>{employee, work_date, status}</code> or bulk <code>{work_date, entries:{uuid:status}}</code></td><td>created/updated record(s); idempotent per (employee, date)</td></tr>
+        <tr><td><code>POST /leave/requests/{uuid}/approve</code></td><td><code>module:leave</code> + <code>leave.request.approve</code></td><td>optional <code>note</code></td><td>approved request; deducts balance &amp; (if Attendance licensed) marks the dates as leave</td></tr>
+        <tr><td><code>POST /payroll/runs/{uuid}/process</code></td><td><code>module:payroll</code> + <code>payroll.run.execute</code></td><td>—</td><td>computes a payslip per active employee (earnings, deductions, LOP proration); run → <code>completed</code></td></tr>
+        <tr><td><code>POST /subscription/upgrade</code></td><td><code>company.subscription.manage</code></td><td><code>plan_code</code></td><td>plan switched immediately; an <code>open</code> invoice for the new plan</td></tr>
+        <tr><td><code>POST /webhooks/{gateway}</code></td><td>signature-verified</td><td>gateway event payload</td><td><code>processed</code> or <code>already_processed</code>; marks invoice paid, records payment, reactivates a blocked subscription</td></tr>
       </tbody>
     </table>
 
@@ -662,10 +704,11 @@ JWT_ALGO=HS256</code></pre>
     "plan_code": "growth"
   }'</code></pre>
 
-    <h3>Planned endpoints <span class="pill plan">PLANNED</span></h3>
-    <p>The full catalogue (subscription/billing, employees, attendance, leave, payroll, super-admin)
-    is specified in <code>docs/07-API.md</code>. They are not yet routed. The routes file shows the intended
-    pattern as comments, e.g. <code>Route::middleware('module:payroll')->prefix('payroll')->group(...)</code>.</p>
+    <h3>Not yet routed <span class="pill plan">PLANNED</span></h3>
+    <p>Super-admin platform endpoints (<code>/admin/*</code> for cross-tenant company/plan/metrics
+    management), employee bulk import, and report-export endpoints remain specified in
+    <code>docs/07-API.md</code> but are not yet routed. Real payment-gateway order creation currently
+    uses the manual adapter (see §5/§17).</p>
 
     <h3>API versioning strategy</h3>
     <ul>
@@ -1029,12 +1072,13 @@ stdout_logfile=/var/log/hrms-worker.log</code></pre>
     host you wire one cron entry:</p>
     <pre><code># crontab -e  (as www-data)
 * * * * * cd /var/www/HRM/backend && php artisan schedule:run >> /dev/null 2>&1</code></pre>
-    <p>Scheduled tasks are defined in <code>routes/console.php</code>. Today only the demo <code>inspire</code>
-    command exists. The <b>planned</b> scheduled tasks (designed in <code>docs/03</code>) are:</p>
+    <p>Scheduled tasks are registered in <code>routes/console.php</code>. The subscription sweep is
+    live; the rest are <span class="pill plan">PLANNED</span> (need the billing-renewal and
+    notification layers):</p>
     <table>
       <thead><tr><th>Task</th><th>Cadence</th><th>Purpose</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td><code>subscriptions:sweep</code></td><td>hourly/daily</td><td>trial→expired, active→grace→expired by date; emit expiring-soon events</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td><code>subscriptions:sweep</code></td><td>hourly</td><td>trial→expired, active→grace→expired by date; flushes affected entitlement caches</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td><code>subscriptions:renew</code></td><td>daily</td><td>auto-renewal charges with retry/backoff</td><td><span class="pill plan">PLANNED</span></td></tr>
         <tr><td>Leave accrual</td><td>daily/monthly</td><td>accrue balances, carry-forward at year boundary</td><td><span class="pill plan">PLANNED</span></td></tr>
         <tr><td>Notification + cleanup jobs</td><td>varies</td><td>reminders, partition archival, token cleanup</td><td><span class="pill plan">PLANNED</span></td></tr>
@@ -1131,34 +1175,34 @@ ModuleSeeder (already lists recruitment)  → modules + features rows
       <li><b>No core changes</b> — modules are additive by design. New models must use <code>BelongsToTenant</code> + <code>HasUuid</code>.</li>
     </ul>
 
-    <h3>19.3 Change payroll logic <span class="pill plan">PLANNED domain</span></h3>
+    <h3>19.3 Change payroll logic <span class="pill built">BUILT domain</span></h3>
     <div class="diagram"><pre>
-PayrollCalculationService (component math)  → the single source of truth
-   └─▶ SalaryStructure / Component models    → earnings/deductions definitions
-        └─▶ PayrollRun job (chunked, idempotent)
+PayrollService::computePayslip (component math)  → the single source of truth
+   └─▶ SalaryStructure / SalaryStructureLine / SalaryComponent  → earnings/deductions
+        └─▶ PayrollService::process (idempotent, per active employee)
              └─▶ Payslip.breakdown JSON       → exact per-component record
-                  └─▶ Payroll reports (summary/register/deductions/tax)
-                       └─▶ Tests: known-input → known-net assertions
+                  └─▶ Payroll reports (summary/register/deductions/tax) [PLANNED]
+                       └─▶ Tests: PayrollTest known-input → known-net assertions
     </pre></div>
     <ul>
-      <li><b>Services that change:</b> the calculation service and any attendance/leave integration (LOP, overtime).</li>
-      <li><b>Reports that change:</b> salary register, deduction, tax reports must reflect new components.</li>
-      <li><b>Risk:</b> money math — keep everything in integer paise; never floats. Add regression tests with fixed inputs.</li>
+      <li><b>Service that changes:</b> <code>PayrollService</code> (calculation + the attendance LOP integration in <code>lopDays()</code>).</li>
+      <li><b>Reports that change:</b> salary register / deduction / tax reports (exports are still PLANNED) must reflect new components.</li>
+      <li><b>Risk:</b> money math — everything is integer paise; never floats. Extend <code>PayrollTest</code> with fixed-input regression cases.</li>
     </ul>
 
-    <h3>19.4 Change billing logic <span class="pill plan">PLANNED domain</span></h3>
+    <h3>19.4 Change billing logic <span class="pill built">BUILT domain</span></h3>
     <div class="diagram"><pre>
-PaymentGateway contract  ← swap/extend adapters (Razorpay/Cashfree/PayU/Stripe)
-   └─▶ GatewayManager (resolves billing.default_gateway)
-        └─▶ Webhook controller → ProcessWebhook job (idempotent on event_id)
-             └─▶ Invoice / Payment / Subscription state updates (transaction)
+PaymentGateway contract  ← swap/extend adapters (Manual today; Razorpay/Cashfree/PayU next)
+   └─▶ GatewayManager (resolves billing.default_gateway, falls back to manual)
+        └─▶ WebhookController (verify → persist webhook_events → process)   [idempotent on event_id]
+             └─▶ InvoiceService / Payment / SubscriptionService (transaction)
                   └─▶ TaxCalculator (GST) → invoice_lines totals
-                       └─▶ Notifications (payment success/failure)
+                       └─▶ Notifications (payment success/failure) [PLANNED]
     </pre></div>
     <ul>
-      <li><b>Payment services:</b> implement the gateway contract; switch via <code>BILLING_DEFAULT_GATEWAY</code> — no business-code change.</li>
-      <li><b>Webhooks:</b> always verify signature, persist raw for idempotency, then process in a job.</li>
-      <li><b>Invoices/subscription calc:</b> proration on upgrade/downgrade; seat + module add-on lines.</li>
+      <li><b>Add a real gateway:</b> implement <code>PaymentGateway</code>, register it in <code>GatewayManager::$adapters</code>, switch via <code>BILLING_DEFAULT_GATEWAY</code> — no business-code change.</li>
+      <li><b>Webhooks:</b> already verify signature, persist raw for idempotency (unique <code>gateway,event_id</code>), then apply in a transaction. Move processing into a queued job for higher volume.</li>
+      <li><b>Invoices/subscription calc:</b> <code>InvoiceService</code> handles base + seats + add-ons + GST; extend it for proration on mid-cycle upgrades.</li>
     </ul>
 
     <h3>19.5 Add a new role or permission</h3>
@@ -1245,7 +1289,9 @@ docker run --rm -v hrms_pgdata:/data -v $PWD:/backup alpine \
 
     <div class="footer">
       <p><b>HRMS SaaS — Technical Handbook.</b> Generated from the actual implementation on the
-      <code>feat/foundation-architecture-and-spine</code> branch. Status tags (BUILT / PARTIAL / PLANNED)
+      <code>feat/foundation-architecture-and-spine</code> branch. The backend is now a complete,
+      test-covered product (Core HR, Attendance, Leave, Payroll, Billing, subscription lifecycle);
+      the Next.js frontend and production hardening remain. Status tags (BUILT / PARTIAL / PLANNED)
       reflect the codebase as it stands; the original design blueprint lives in <code>docs/00</code>–<code>docs/11</code>
       and <code>docs/ROADMAP.md</code>. For the non-technical companion, see <code>business-documentation.html</code>.</p>
     </div>

@@ -48,9 +48,19 @@ final class SubscriptionEngine
             return $this->emptyEntitlement();
         }
 
-        $cacheKey = sprintf('entitlement:%d:%d', $companyId, $subscription->updated_at?->timestamp ?? 0);
+        return Cache::remember(self::cacheKey($companyId), now()->addHour(), fn () => $this->resolve($subscription));
+    }
 
-        return Cache::remember($cacheKey, now()->addHour(), fn () => $this->resolve($subscription));
+    /** Stable per-company entitlement cache key. */
+    public static function cacheKey(int $companyId): string
+    {
+        return "entitlement:{$companyId}";
+    }
+
+    /** Invalidate a company's cached entitlement (call on any subscription change). */
+    public function flush(int $companyId): void
+    {
+        Cache::forget(self::cacheKey($companyId));
     }
 
     private function resolve(Subscription $subscription): Entitlement

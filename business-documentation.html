@@ -251,15 +251,16 @@
       <thead><tr><th>Action</th><th>What the company does</th><th>What happens</th></tr></thead>
       <tbody>
         <tr><td><strong>Subscribe</strong></td><td>Sign up, pick a plan, start the free trial, then pay</td><td>Their private workspace and admin account are created instantly <span class="badge live">LIVE</span></td></tr>
-        <tr><td><strong>Upgrade plan</strong></td><td>Move from Starter to Growth/Enterprise</td><td>New modules unlock immediately; they pay the difference <span class="badge">PLANNED</span></td></tr>
-        <tr><td><strong>Downgrade</strong></td><td>Move to a smaller plan</td><td>Takes effect at the next billing period so the paid time isn't lost <span class="badge">PLANNED</span></td></tr>
-        <tr><td><strong>Add-ons</strong></td><td>Buy an extra module or more seats</td><td>Added to their subscription and reflected on the invoice <span class="badge">PLANNED</span></td></tr>
+        <tr><td><strong>Upgrade plan</strong></td><td>Move from Starter to Growth/Enterprise</td><td>New modules unlock immediately; they pay the difference <span class="badge live">AVAILABLE</span></td></tr>
+        <tr><td><strong>Downgrade</strong></td><td>Move to a smaller plan</td><td>Takes effect at the next billing period so the paid time isn't lost <span class="badge live">AVAILABLE</span></td></tr>
+        <tr><td><strong>Add-ons</strong></td><td>Buy an extra module or more seats</td><td>Added to their subscription and reflected on the invoice <span class="badge live">AVAILABLE</span></td></tr>
         <tr><td><strong>Add employees</strong></td><td>Add staff one-by-one or import a list</td><td>Allowed up to the seat limit; beyond that they're prompted to buy seats/upgrade <span class="badge live">SEAT RULES LIVE</span></td></tr>
       </tbody>
     </table>
-    <div class="callout note"><div class="t">A quick honesty note</div>Signing up, getting a workspace and
-    admin, starting a trial, and the seat-limit rules all work today. Online plan-upgrade and card
-    payment screens are planned next (see "A note on readiness" at the end).</div>
+    <div class="callout note"><div class="t">A quick honesty note</div>Sign-up, workspaces, the seat-limit
+    rules, plan upgrade/downgrade, cancel/reactivate, and invoice generation all work today. The
+    polished web screens for these and live card-payment provider integrations are the remaining
+    pieces (see "A note on readiness" at the end).</div>
 
     <h2 id="employee">Module: Employee Management</h2>
     <p>The heart of the system — a clean directory of everyone in the company.</p>
@@ -271,7 +272,7 @@
     </ul>
     <div class="shot"><span class="lbl">Screenshot placeholder</span>Employee directory — searchable list with department, role, and status columns.</div>
 
-    <h2 id="attendance">Module: Attendance Management <span class="badge">PLANNED</span></h2>
+    <h2 id="attendance">Module: Attendance Management <span class="badge live">AVAILABLE</span></h2>
     <p>Tracks who worked, when, and for how long. Two ways to use it:</p>
     <div class="cards">
       <div class="card"><div class="ic">🧑‍💼</div><h4>HR marks attendance</h4><p>HR sets Present / Absent / Half-day / Leave for staff, individually or in bulk for a date.</p></div>
@@ -281,7 +282,7 @@
     real attendance. Future capture options include GPS, QR codes, and biometric devices.</p>
     <div class="shot"><span class="lbl">Screenshot placeholder</span>Monthly attendance grid with present/absent colour coding and an overtime summary.</div>
 
-    <h2 id="leave">Module: Leave Management <span class="badge">PLANNED</span></h2>
+    <h2 id="leave">Module: Leave Management <span class="badge live">AVAILABLE</span></h2>
     <ul>
       <li>Define leave types (paid, sick, unpaid) and policies (how much accrues, carry-forward rules).</li>
       <li>Employees request leave; managers and HR approve or reject it with a clear record.</li>
@@ -290,7 +291,7 @@
     </ul>
     <div class="shot"><span class="lbl">Screenshot placeholder</span>Leave request screen with balance remaining and an approval timeline.</div>
 
-    <h2 id="payroll">Module: Payroll Management <span class="badge">PLANNED</span></h2>
+    <h2 id="payroll">Module: Payroll Management <span class="badge live">AVAILABLE</span></h2>
     <p>Turns attendance and salary structures into accurate monthly pay.</p>
     <ul>
       <li>Set up each employee's salary made of components (Basic, HRA, allowances, deductions, tax).</li>
@@ -302,7 +303,7 @@
     just a few clicks, with a guided review screen so nothing is missed.</div>
     <div class="shot"><span class="lbl">Screenshot placeholder</span>Payroll run review — list of employees with gross, deductions, and net pay before publishing.</div>
 
-    <h2 id="billing">How subscription billing works <span class="badge">PLANNED</span></h2>
+    <h2 id="billing">How subscription billing works <span class="badge live">AVAILABLE</span></h2>
     <p>Billing is how the platform collects money from companies.</p>
     <ul>
       <li>Each period, the platform creates an invoice for the company (base plan + extra seats + add-ons + tax/GST).</li>
@@ -454,13 +455,21 @@
     <div class="callout amber">
       <div class="t">What works today vs. what's coming</div>
       <p>This guide describes the full product vision. To be completely honest with stakeholders, here
-      is where things stand right now:</p>
-      <p><strong>Working today:</strong> company sign-up, private workspaces, secure logins, user roles
-      and permissions, the subscription plans and rules (including seat limits), and the engine that
-      decides which features each company can access.</p>
-      <p><strong>Coming next:</strong> the visual web app screens, the attendance / leave / payroll
-      day-to-day features, and online billing/payments. The foundation they build on is already in
-      place, so these are additions rather than rebuilds.</p>
+      is exactly where things stand right now:</p>
+      <p><strong>Built and working (the engine):</strong> company sign-up, private workspaces, secure
+      logins, the five user roles and their permissions, the subscription plans and rules (including
+      seat limits, upgrade/downgrade, cancel/reactivate), <strong>Employee management, Attendance,
+      Leave, and Payroll</strong>, and <strong>billing</strong> (invoices with GST, payment recording,
+      and automatic reactivation when a payment succeeds). Subscriptions also move through their
+      lifecycle automatically (trial → active → grace → expired) on a schedule. All of this is
+      covered by an automated test suite.</p>
+      <p><strong>Still coming:</strong> the visual web/app screens that sit on top of this engine
+      (today it is reachable through the system's API rather than a polished click-through app),
+      live connections to specific payment providers such as Razorpay/Cashfree/PayU (a working
+      manual/offline payment path exists today), and extras like downloadable PDF reports,
+      email/SMS notifications, and two-factor login.</p>
+      <p>In short: the <strong>brains of the product are complete and tested</strong>; the main
+      remaining work is the <strong>visual interface</strong> and a few production conveniences.</p>
       <p>For the precise engineering status, your technical team can refer to the companion
       <em>Technical Handbook</em> (<code>documentation.html</code>).</p>
     </div>

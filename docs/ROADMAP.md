@@ -5,32 +5,32 @@ build and a PR. Earlier phases unblock later ones.
 
 ## Build Sequencing
 
-### Phase 0 — Foundation (in progress)
+### Phase 0 — Foundation
 - [x] Architecture blueprint (`docs/`)
-- [ ] Laravel 12 backend scaffold + folder structure (service/repository layers)
-- [ ] Docker / compose / Nginx for local dev
-- [ ] Base API conventions: response envelope, error codes, auth scaffolding
+- [x] Laravel 12 backend scaffold + folder structure (service/repository layers)
+- [x] Docker / compose / Nginx for local dev
+- [x] Base API conventions: response envelope, error codes, auth scaffolding
 
 ### Phase 1 — Platform Spine
-- [ ] Multi-tenant core (`BelongsToTenant` scope, tenant middleware, base model)
-- [ ] Identity & Auth (JWT + refresh, users, sessions, login history, MFA scaffolding)
-- [ ] RBAC (roles, permissions, permission groups, middleware + policies)
-- [ ] Subscription Engine + Feature Access Service + module/feature/plan seeders
-- [ ] Tenant-isolation test suite in CI
+- [x] Multi-tenant core (`BelongsToTenant` scope, tenant middleware, base model)
+- [x] Identity & Auth (JWT + refresh, users) — sessions/login history/MFA still pending
+- [x] RBAC (roles, permissions, middleware)
+- [x] Subscription Engine + Feature Access Service + module/feature/plan seeders
+- [x] Tenant-isolation test suite in CI
 
 ### Phase 2 — Billing
-- [ ] Gateway abstraction + Razorpay adapter (Cashfree/PayU next)
-- [ ] Invoices, payments, webhooks (idempotent), tax/GST, PDF generation
-- [ ] Subscription lifecycle jobs (sweep, renew, dunning)
+- [x] Gateway abstraction + manual adapter + GatewayManager (Razorpay/Cashfree/PayU adapters next)
+- [x] Invoices, payments, webhooks (idempotent), tax/GST — PDF generation still pending
+- [x] Subscription lifecycle job (sweep). Auto-renew/dunning still pending
 
 ### Phase 3 — Core HR + first revenue modules
-- [ ] Employee/Department/Designation + bulk import
-- [ ] Attendance (manual + self) + reports/exports
-- [ ] Leave (types, policies, balances, approval workflow, calendar)
+- [x] Employee/Department/Designation (seat-gated). Bulk import still pending
+- [x] Attendance (manual + self check-in/out, worked/overtime). Exports still pending
+- [x] Leave (types, balances, request → approve/reject, attendance integration). Calendar endpoint done
 
 ### Phase 4 — Payroll
-- [ ] Salary components/structures, payroll runs, payslips
-- [ ] Attendance/leave integration, statutory (PF/ESI/tax), reports
+- [x] Salary components/structures, payroll runs, payslips
+- [x] Attendance/leave integration (LOP proration). Statutory (PF/ESI/tax) + reports still pending
 
 ### Phase 5 — Frontend
 - [ ] Next.js scaffold + design system + API client + auth

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Subscription\Console\SweepSubscriptions;
 use App\Http\Middleware\EnsureFeatureAccess;
 use App\Http\Middleware\EnsureModuleAccess;
 use App\Http\Middleware\ResolveTenant;
@@ -26,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         apiPrefix: 'api/v1',
     )
+    ->withCommands([
+        SweepSubscriptions::class,
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant' => ResolveTenant::class,
