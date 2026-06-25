@@ -78,5 +78,19 @@ services:
       - ../backend:/var/www/html
     restart: unless-stopped
 
+  # Next.js frontend SPA. The browser loads it on :3000 and calls the API on :8000.
+  # NEXT_PUBLIC_API_URL is baked at build time, so rebuild if you change it.
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
 volumes:
   pgdata:

@@ -174,13 +174,13 @@
 
     <div class="callout note">
       <div class="t">Read this first — what state is the project in?</div>
-      This repository now contains a <b>complete, tested backend product</b>. The original foundation
-      (multi-tenancy, JWT identity, RBAC, subscription engine) plus the full business suite —
-      <b>Employee/Core-HR, Attendance, Leave, Payroll, and Billing</b> — and the <b>subscription
-      lifecycle automation</b> are all implemented and covered by a passing test suite (25 tests).
-      The remaining work is the <b>Next.js frontend</b> and production hardening (real gateway
-      adapters, notifications, MFA, reporting exports). Every capability below is tagged so a new
-      team knows exactly what exists today:
+      This repository now contains a <b>complete, working product</b>: a <b>Laravel 12 API backend</b>
+      (multi-tenancy, JWT identity, RBAC, subscription engine, plus the full business suite —
+      Employee/Core-HR, Attendance, Leave, Payroll, and Billing — with subscription lifecycle
+      automation, covered by a passing test suite) <b>and a Next.js web frontend</b>
+      (<code>frontend/</code>) with login, registration, dashboards and screens for every module.
+      The remaining items are production-hardening niceties (real gateway adapters, report exports,
+      notifications, MFA). Every capability below is tagged so a new team knows exactly what exists:
       <div class="legend">
         <span><span class="pill built">BUILT</span> implemented &amp; in the codebase (test-covered)</span>
         <span><span class="pill part">PARTIAL</span> core works; advanced sub-features pending</span>
@@ -210,7 +210,7 @@
         <tr><td>Billing engine, gateway abstraction, invoices, idempotent webhooks</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Billing/*</code>, <code>SubscriptionController.php</code>, <code>WebhookController.php</code></td></tr>
         <tr><td>Subscription lifecycle job (trial→expired, active→grace→expired)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Subscription/Console/SweepSubscriptions.php</code>, scheduled hourly in <code>routes/console.php</code></td></tr>
         <tr><td>Real payment gateway adapters (Razorpay/Cashfree/PayU)</td><td><span class="pill part">PARTIAL</span></td><td>contract + <code>ManualGateway</code> + <code>GatewayManager</code> done; provider adapters pending</td></tr>
-        <tr><td>Next.js frontend (3 personas, command palette)</td><td><span class="pill plan">PLANNED</span></td><td>specced in <code>docs/10-FRONTEND-UX.md</code> (Phase 5)</td></tr>
+        <tr><td>Next.js frontend (login, dashboards, all module screens)</td><td><span class="pill built">BUILT</span></td><td><code>frontend/</code> — Next.js 14 App Router + Tailwind; builds clean (<code>next build</code>)</td></tr>
         <tr><td>Reporting exports, notifications, MFA, audit logs</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code>, <code>docs/09</code> (Phase 6)</td></tr>
         <tr><td>Infra: docker-compose, PHP-FPM image, Nginx, CI</td><td><span class="pill built">BUILT</span></td><td><code>infra/</code>, <code>.github/workflows/ci.yml</code></td></tr>
       </tbody>
@@ -218,10 +218,10 @@
     <div class="callout ok">
       <div class="t">What this means for a new owner</div>
       The hard architectural decisions — tenant isolation that cannot be bypassed by accident, an
-      entitlement engine with zero hardcoded plan logic, clean service layering — are in place and
-      every business module (HR, Attendance, Leave, Payroll, Billing) is built on top of them and
-      covered by tests. The backend is a working product end-to-end. The main remaining effort is the
-      <b>customer-facing web UI</b> and production hardening, both of which consume this same API.
+      entitlement engine with zero hardcoded plan logic, clean service layering — are in place, every
+      business module is built on top of them and covered by tests, and a <b>Next.js web UI</b> drives
+      the whole thing in the browser. The product runs end-to-end. Remaining work is production
+      polish: real payment-gateway adapters, report exports, notifications, and MFA.
     </div>
 
 
@@ -286,7 +286,7 @@ Cache/Queue → Redis      Async → queue workers (Horizon-ready)
     <table>
       <thead><tr><th>Layer</th><th>Responsibility</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Frontend</td><td>Next.js SPA for Super Admin / Company / Employee personas; mirrors entitlements to hide UI. Backend stays authoritative.</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Frontend</td><td>Next.js 14 (App Router) SPA in <code>frontend/</code>: login/registration, dashboard, and screens for Employees, Attendance, Leave, Payroll, Billing. Role- + entitlement-gated nav; talks to the API with a Bearer token.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>Backend (API)</td><td>Laravel 12 REST, layered HTTP→Service→Model. Stateless (JWT), so it scales horizontally.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>Database</td><td>PostgreSQL 16, single shared schema, row-level tenant isolation by <code>company_id</code>.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>Cache</td><td>Redis. Used for entitlement caching (1h TTL, see <code>SubscriptionEngine</code>) and as cache/session store.</td><td><span class="pill built">BUILT</span></td></tr>
@@ -344,7 +344,8 @@ Cache/Queue → Redis      Async → queue workers (Horizon-ready)
     <div class="diagram"><pre>
 HRM/
 ├── docs/                 design blueprint (00–11 + ROADMAP) — the original spec
-├── backend/              Laravel 12 API  ← the whole product today
+├── backend/              Laravel 12 API  ← the server/product brain
+├── frontend/             Next.js 14 web app  ← the browser UI users log into
 ├── infra/                Docker, Nginx, PHP-FPM image
 └── .github/workflows/    CI pipeline
     </pre></div>
@@ -1299,11 +1300,13 @@ docker run --rm -v hrms_pgdata:/data -v $PWD:/backup alpine \
 
     <div class="footer">
       <p><b>HRMS SaaS — Technical Handbook.</b> Generated from the actual implementation on the
-      <code>feat/foundation-architecture-and-spine</code> branch. The backend is now a complete,
-      test-covered product (Core HR, Attendance, Leave, Payroll, Billing, subscription lifecycle);
-      the Next.js frontend and production hardening remain. Status tags (BUILT / PARTIAL / PLANNED)
-      reflect the codebase as it stands; the original design blueprint lives in <code>docs/00</code>–<code>docs/11</code>
-      and <code>docs/ROADMAP.md</code>. For the non-technical companion, see <code>business-documentation.html</code>.</p>
+      <code>feat/foundation-architecture-and-spine</code> branch. The product is complete end-to-end:
+      a tested Laravel API (Core HR, Attendance, Leave, Payroll, Billing, subscription lifecycle) and
+      a Next.js web frontend (<code>frontend/</code>). Production-polish items (real gateway adapters,
+      report exports, notifications, MFA) remain. Status tags (BUILT / PARTIAL / PLANNED) reflect the
+      codebase as it stands; the original design blueprint lives in <code>docs/00</code>–<code>docs/11</code>
+      and <code>docs/ROADMAP.md</code>. Setup instructions: <code>setup-guide.html</code>. Non-technical
+      companion: <code>business-documentation.html</code>.</p>
     </div>
   </main>
 </div>

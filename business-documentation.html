@@ -257,10 +257,10 @@
         <tr><td><strong>Add employees</strong></td><td>Add staff one-by-one or import a list</td><td>Allowed up to the seat limit; beyond that they're prompted to buy seats/upgrade <span class="badge live">SEAT RULES LIVE</span></td></tr>
       </tbody>
     </table>
-    <div class="callout note"><div class="t">A quick honesty note</div>Sign-up, workspaces, the seat-limit
-    rules, plan upgrade/downgrade, cancel/reactivate, and invoice generation all work today. The
-    polished web screens for these and live card-payment provider integrations are the remaining
-    pieces (see "A note on readiness" at the end).</div>
+    <div class="callout note"><div class="t">A quick note</div>The web app covers all of this today —
+    sign-up, employees, attendance, leave, payroll, plan upgrade/downgrade, cancel/reactivate and
+    invoices. The remaining pieces are live card-payment provider integrations and conveniences like
+    PDF exports (see "A note on readiness" at the end).</div>
 
     <h2 id="employee">Module: Employee Management</h2>
     <p>The heart of the system — a clean directory of everyone in the company.</p>
@@ -349,7 +349,7 @@
     </table>
 
     <h2 id="dashboards">Dashboards, menus &amp; reports</h2>
-    <p>Each role gets a tailored home screen and menu. <span class="badge">PLANNED — visual app</span></p>
+    <p>Each role gets a tailored home screen and menu. <span class="badge live">AVAILABLE</span></p>
     <div class="cards">
       <div class="card"><div class="ic">👑</div><h4>Super Admin dashboard</h4><p>Total revenue (MRR/ARR), number of active companies, subscriptions expiring soon, failed payments. Menus: Companies, Plans, Modules, Subscriptions, Billing, Audit.</p></div>
       <div class="card"><div class="ic">🏢</div><h4>Company Admin dashboard</h4><p>Employee count, attendance and leave summaries, subscription status. Menus: Employees, Attendance, Leave, Payroll, Departments, Settings, Subscription, Billing.</p></div>
@@ -456,20 +456,21 @@
       <div class="t">What works today vs. what's coming</div>
       <p>This guide describes the full product vision. To be completely honest with stakeholders, here
       is exactly where things stand right now:</p>
-      <p><strong>Built and working (the engine):</strong> company sign-up, private workspaces, secure
-      logins, the five user roles and their permissions, the subscription plans and rules (including
-      seat limits, upgrade/downgrade, cancel/reactivate), <strong>Employee management, Attendance,
-      Leave, and Payroll</strong>, and <strong>billing</strong> (invoices with GST, payment recording,
-      and automatic reactivation when a payment succeeds). Subscriptions also move through their
-      lifecycle automatically (trial → active → grace → expired) on a schedule. All of this is
-      covered by an automated test suite.</p>
-      <p><strong>Still coming:</strong> the visual web/app screens that sit on top of this engine
-      (today it is reachable through the system's API rather than a polished click-through app),
-      live connections to specific payment providers such as Razorpay/Cashfree/PayU (a working
-      manual/offline payment path exists today), and extras like downloadable PDF reports,
-      email/SMS notifications, and two-factor login.</p>
-      <p>In short: the <strong>brains of the product are complete and tested</strong>; the main
-      remaining work is the <strong>visual interface</strong> and a few production conveniences.</p>
+      <p><strong>Built and working (the engine + the app):</strong> the <b>web application</b> itself —
+      company sign-up and login, dashboards, and full screens for Employees, Attendance, Leave,
+      Payroll and Subscription/Billing — plus everything behind it: private workspaces, secure
+      logins, the five user roles and their permissions, the subscription plans and rules (seat
+      limits, upgrade/downgrade, cancel/reactivate), and billing (invoices with GST, payment
+      recording, automatic reactivation). Subscriptions also move through their lifecycle
+      automatically (trial → active → grace → expired). The back end is covered by an automated test
+      suite and the front end builds cleanly.</p>
+      <p><strong>Still coming (production polish):</strong> live connections to specific payment
+      providers such as Razorpay/Cashfree/PayU (a working manual/offline payment path exists today),
+      downloadable PDF reports, email/SMS notifications, two-factor login, and conveniences like
+      bulk employee import.</p>
+      <p>In short: the product is <strong>usable end-to-end today</strong> — sign up, add your team,
+      track attendance, request and approve leave, run payroll, and manage your subscription, all
+      from the browser.</p>
       <p>For the precise engineering status, your technical team can refer to the companion
       <em>Technical Handbook</em> (<code>documentation.html</code>).</p>
     </div>

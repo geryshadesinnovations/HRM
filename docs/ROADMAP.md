@@ -33,9 +33,9 @@ build and a PR. Earlier phases unblock later ones.
 - [x] Attendance/leave integration (LOP proration). Statutory (PF/ESI/tax) + reports still pending
 
 ### Phase 5 — Frontend
-- [ ] Next.js scaffold + design system + API client + auth
-- [ ] Employee portal → Company Admin panel → Super Admin panel
-- [ ] Command palette, global search, onboarding
+- [x] Next.js scaffold + design system (Tailwind) + API client + JWT auth
+- [x] Login/registration, dashboard, and screens for Employees, Attendance, Leave, Payroll, Billing (role + entitlement gated)
+- [ ] Command palette, global search, onboarding wizard
 
 ### Phase 6 — Reporting, Notifications, Hardening
 - [ ] Report engine + scheduled delivery

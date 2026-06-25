@@ -88,7 +88,8 @@
       <a href="#local-native-ubuntu">3.1 Ubuntu / WSL</a>
       <a href="#local-native-mac">3.2 macOS</a>
       <a href="#local-native-windows">3.3 Windows</a>
-      <a href="#local-run">3.4 Configure, migrate, run</a>
+      <a href="#local-run">3.4 Configure, migrate, run (API)</a>
+      <a href="#local-frontend">3.5 Run the web UI</a>
       <a href="#verify">4. Verify it actually works</a>
       <a href="#local-trouble">5. Localhost troubleshooting</a>
       <div class="group">Deploy to a VPS</div>
@@ -96,6 +97,7 @@
       <a href="#vps-dns">7. Domain &amp; DNS</a>
       <a href="#vps-docker">8. Path A — Docker on VPS</a>
       <a href="#vps-native">9. Path B — Native production</a>
+      <a href="#vps-frontend">9.5 Deploy the frontend</a>
       <a href="#vps-workers">10. Queue + scheduler (always-on)</a>
       <a href="#vps-ssl">11. HTTPS / SSL</a>
       <a href="#prod-env">12. Production .env reference</a>
@@ -115,13 +117,12 @@
     </section>
 
     <div class="callout note">
-      <div class="t">What is "the app" right now?</div>
-      The product today is a <b>Laravel 12 REST API backend</b> (the brains: multi-tenancy, auth,
-      subscriptions, Employees, Attendance, Leave, Payroll, Billing). The customer-facing
-      <b>web UI (Next.js) is not built yet</b>. So "fully functional" here means: the API is running,
-      the database is migrated and seeded, background workers + scheduler are alive, and you can
-      drive the whole product over HTTP (we prove it in <a href="#verify">§4</a>). Any web/mobile
-      frontend or API client then talks to this same API.
+      <div class="t">What is "the app"?</div>
+      The platform has two parts, both in this repo: a <b>Laravel 12 REST API backend</b>
+      (<code>backend/</code> — multi-tenancy, auth, subscriptions, Employees, Attendance, Leave,
+      Payroll, Billing) and a <b>Next.js web frontend</b> (<code>frontend/</code> — login, dashboards,
+      and screens for every module). The frontend is a browser SPA that talks to the API. This guide
+      gets <b>both</b> running: the API on <code>:8000</code> and the web app on <code>:3000</code>.
     </div>
 
     <div class="callout ok">
@@ -152,6 +153,9 @@
 │   ├── .env.example   copy this to .env
 │   ├── artisan        the Laravel CLI
 │   └── ...
+├── frontend/       the Next.js web app (the UI users log into)
+│   ├── .env.example   copy this to .env.local
+│   └── src/app/...
 ├── infra/          Docker: docker-compose.yml, PHP image, Nginx config
 └── documentation.html / business-documentation.html / setup-guide.html</code></pre>
     </div>
@@ -219,11 +223,14 @@ cd ..</code></pre>
 
     <h3>Step 7 — It's running</h3>
     <ul>
+      <li><b>Web app (UI):</b> <code>http://localhost:3000</code> — open this and log in.</li>
       <li>API base URL: <code>http://localhost:8000</code></li>
       <li>Health check: open <code>http://localhost:8000/up</code> → should say the app is up.</li>
       <li>Super Admin login: <code>superadmin@hrms.test</code> / <code>password</code> (override via <code>SUPER_ADMIN_EMAIL</code>/<code>SUPER_ADMIN_PASSWORD</code> before seeding).</li>
     </ul>
-    <p>Now jump to <a href="#verify">§4 — Verify it actually works</a> to drive the full product over HTTP.</p>
+    <p>The <code>frontend</code> container builds on first <code>up</code> (it may take a minute). Then
+    open <b><code>http://localhost:3000</code></b> and click <b>Start a free trial</b>. Or jump to
+    <a href="#verify">§4</a> to drive the product over HTTP.</p>
 
     <h4>Handy Docker commands</h4>
     <pre><code>cd infra
@@ -349,7 +356,46 @@ php artisan schedule:work</code></pre>
     <p>Now continue to <a href="#verify">§4</a> to confirm everything works.</p>
 
 
+    <h2 id="local-frontend">3.5 Run the web UI (Next.js frontend)</h2>
+    <p>The frontend is the browser app your users log into. It lives in <code>frontend/</code> and
+    talks to the API you started above.</p>
+    <div class="callout ok"><div class="t">Docker users: it's already running</div>
+      The Docker stack (§2) includes a <code>frontend</code> container — the web app is already at
+      <b><code>http://localhost:3000</code></b>. Skip to <a href="#verify">§4</a> (or just open it in a
+      browser and log in). The steps below are for a native/local Node setup.</div>
+    <pre><code># In a new terminal, from the repo root:
+cd HRM/frontend
+
+# 1. Tell the UI where the API is
+cp .env.example .env.local
+#   .env.local should contain:  NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# 2. Install dependencies
+npm install
+
+# 3a. Development mode (hot reload) — recommended while developing
+npm run dev          # opens http://localhost:3000
+
+# 3b. OR production build + serve
+npm run build
+npm run start        # serves http://localhost:3000</code></pre>
+    <p>Open <b><code>http://localhost:3000</code></b>. You'll see the login screen. Click
+    <b>"Start a free trial"</b> to register a company (or log in with the super admin
+    <code>superadmin@hrms.test</code> / <code>password</code>). The sidebar shows Employees,
+    Attendance, Leave, Payroll and Billing — each gated by the company's plan and the user's role.</p>
+    <div class="callout warn"><div class="t">CORS</div>
+      The API already allows browser calls (a <code>config/cors.php</code> ships with the backend,
+      defaulting to allow all origins for Bearer-token auth). In production, set
+      <code>CORS_ALLOWED_ORIGINS=https://app.yourdomain.com</code> in the backend <code>.env</code> to
+      restrict it.</div>
+
     <h2 id="verify">4. Verify it actually works (end-to-end smoke test)</h2>
+    <div class="callout ok"><div class="t">Easiest check: use the web app</div>
+      Open <code>http://localhost:3000</code>, click <b>Start a free trial</b>, register a company on
+      the <b>Growth</b> plan, and you'll land on the dashboard with Employees / Attendance / Leave /
+      Payroll / Billing in the sidebar. Add an employee, mark attendance, run payroll — if those
+      screens work, the whole stack works. The curl flow below is the same thing at the API level
+      (useful for CI or headless checks).</div>
     <p>This walks the full product over HTTP: health → create a company → log in → call authenticated
     and subscription-gated endpoints. It works identically for the Docker and native setups (same
     <code>http://localhost:8000</code>). Install <code>jq</code> for pretty JSON, or drop the <code>| jq</code> parts.</p>
@@ -615,8 +661,52 @@ NGINX
 sudo ln -sf /etc/nginx/sites-available/hrms /etc/nginx/sites-enabled/hrms
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl reload nginx</code></pre>
-    <p>Visit <code>http://api.yourdomain.com/up</code> — it should return 200. Continue to §10 and §11.</p>
+    <p>Visit <code>http://api.yourdomain.com/up</code> — it should return 200. Continue to §9.5–§11.</p>
 
+    <h2 id="vps-frontend">9.5 Deploy the frontend (web UI)</h2>
+    <p>Serve the Next.js app on its own host, e.g. <code>app.yourdomain.com</code>, pointed at the
+    public API URL.</p>
+    <div class="callout warn"><div class="t">Build-time API URL</div>
+      <code>NEXT_PUBLIC_API_URL</code> is baked into the browser bundle at <b>build</b> time. Set it to
+      your <b>public</b> API URL (e.g. <code>https://api.yourdomain.com</code>) before building — not
+      <code>localhost</code>.</div>
+    <h4>Docker path</h4>
+    <p>The compose stack already includes a <code>frontend</code> service on port 3000. Build it with
+    the public API URL and reverse-proxy your app domain to it:</p>
+    <pre><code># build the frontend image with the real API URL, then (re)start it
+cd /var/www/HRM
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com \
+  docker compose -f infra/docker-compose.yml up -d --build frontend
+
+# host Nginx vhost: app.yourdomain.com → the frontend container on :3000
+sudo tee /etc/nginx/sites-available/hrms-app >/dev/null &lt;&lt;'NGINX'
+server {
+    listen 80;
+    server_name app.yourdomain.com;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+NGINX
+sudo ln -sf /etc/nginx/sites-available/hrms-app /etc/nginx/sites-enabled/hrms-app
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d app.yourdomain.com</code></pre>
+    <h4>Native path</h4>
+    <pre><code>cd /var/www/HRM/frontend
+npm ci
+echo "NEXT_PUBLIC_API_URL=https://api.yourdomain.com" > .env.local
+npm run build
+# run it persistently (example with pm2):
+sudo npm i -g pm2
+pm2 start "npm run start" --name hrms-frontend
+pm2 save && pm2 startup     # survive reboots
+# then add an Nginx vhost for app.yourdomain.com → 127.0.0.1:3000 (as above) + certbot</code></pre>
+    <div class="callout note"><div class="t">Lock down CORS</div>
+      In the backend <code>.env</code>, set <code>CORS_ALLOWED_ORIGINS=https://app.yourdomain.com</code>
+      so only your frontend can call the API from a browser.</div>
 
     <h2 id="vps-workers">10. Queue worker + scheduler (always-on)</h2>
     <p>The platform needs two background processes running permanently: the <b>queue worker</b>
@@ -734,7 +824,12 @@ BILLING_DEFAULT_GATEWAY=manual
 
 # Object storage (only needed once file uploads/exports are used)
 FILESYSTEM_DISK=s3
-AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...  AWS_BUCKET=...  AWS_ENDPOINT=...</code></pre>
+AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...  AWS_BUCKET=...  AWS_ENDPOINT=...
+
+# Frontend / CORS — restrict browser origins to your web app in production
+CORS_ALLOWED_ORIGINS=https://app.yourdomain.com
+# (frontend build-time var, set in frontend/.env.local or the Docker build arg)
+# NEXT_PUBLIC_API_URL=https://api.yourdomain.com</code></pre>
     <div class="callout danger"><div class="t">Security must-dos</div>
       <ul>
         <li><b>Change</b> the default super-admin password (<code>password</code>) — set <code>SUPER_ADMIN_PASSWORD</code> before seeding, or change it after.</li>
@@ -756,6 +851,7 @@ AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...  AWS_BUCKET=...  AWS_ENDPOINT=.
       <li>☐ <code>storage/</code> + <code>bootstrap/cache</code> owned by <code>www-data</code>.</li>
       <li>☐ Firewall allows only 22/80/443; DB &amp; Redis are private.</li>
       <li>☐ The <a href="#verify">§4 smoke test</a> passes against the live domain.</li>
+      <li>☐ Frontend built with <code>NEXT_PUBLIC_API_URL=https://api.yourdomain.com</code> and reachable at <code>https://app.yourdomain.com</code>; <code>CORS_ALLOWED_ORIGINS</code> set to it.</li>
       <li>☐ A database backup job is scheduled (§15).</li>
     </ul>
 
@@ -777,7 +873,9 @@ cd infra
 docker compose exec app composer install --no-dev --optimize-autoloader
 docker compose exec app php artisan migrate --force
 docker compose exec app php artisan config:cache
-docker compose restart app horizon scheduler</code></pre>
+docker compose restart app horizon scheduler
+# rebuild the frontend if its code or NEXT_PUBLIC_API_URL changed:
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com docker compose -f ../infra/docker-compose.yml up -d --build frontend</code></pre>
     <div class="callout note"><div class="t">Zero-ish downtime</div>
       Migrations in this project are additive. For risky schema changes use the expand→migrate→contract
       pattern and never edit a migration that has already shipped — always add a new one.</div>
