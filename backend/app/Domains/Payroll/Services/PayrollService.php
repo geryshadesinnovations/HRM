@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Payroll\Services;
 
 use App\Domains\Employee\Models\Employee;
+use App\Domains\Notification\Services\NotificationService;
 use App\Domains\Payroll\Models\PayrollRun;
 use App\Domains\Payroll\Models\Payslip;
 use App\Domains\Payroll\Models\SalaryStructure;
@@ -25,7 +26,10 @@ use Illuminate\Support\Facades\Schema;
  */
 final class PayrollService
 {
-    public function __construct(private readonly FeatureAccess $access) {}
+    public function __construct(
+        private readonly FeatureAccess $access,
+        private readonly NotificationService $notifications,
+    ) {}
 
     public function createRun(int $year, int $month): PayrollRun
     {
@@ -111,6 +115,19 @@ final class PayrollService
         }
 
         $run->update(['status' => 'locked']);
+
+        // Notify each employee that their payslip is available.
+        $period = Carbon::create($run->period_year, $run->period_month, 1)->format('F Y');
+        $run->payslips()->with('employee:id,user_id,company_id')->get()->each(function (Payslip $slip) use ($period, $run): void {
+            $this->notifications->toUser(
+                $slip->employee?->user_id,
+                (int) $run->company_id,
+                'payroll.payslip',
+                'Payslip available',
+                "Your payslip for {$period} is ready to view.",
+                ['payslip_uuid' => $slip->uuid],
+            );
+        });
 
         return $run;
     }

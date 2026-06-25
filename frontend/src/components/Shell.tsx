@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
 import { Badge, statusColor } from "./ui";
 
 type NavItem = {
@@ -44,14 +46,44 @@ const NAV: NavItem[] = [
     icon: "🧾",
     show: (a) => a.can("company.subscription.manage") || a.can("company.billing.manage"),
   },
+  {
+    href: "/reports",
+    label: "Reports",
+    icon: "📊",
+    show: (a) =>
+      a.can("attendance.report.view") ||
+      a.can("payroll.report.view") ||
+      a.can("employee.profile.view"),
+  },
+  {
+    href: "/notifications",
+    label: "Notifications",
+    icon: "🔔",
+    show: () => true,
+  },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [unread, setUnread] = useState(0);
 
   const items = NAV.filter((n) => n.show(auth));
+
+  useEffect(() => {
+    let active = true;
+    const poll = () =>
+      api<{ unread: number }>("/notifications/unread-count")
+        .then((r) => active && setUnread(r.unread))
+        .catch(() => {});
+    poll();
+    const id = setInterval(poll, 30000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, [pathname]);
 
   async function handleLogout() {
     await auth.logout();
@@ -109,6 +141,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div className="md:hidden text-sm font-bold text-slate-900">HRMS SaaS</div>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
+            <Link
+              href="/notifications"
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg text-lg hover:bg-slate-100"
+              title="Notifications"
+            >
+              🔔
+              {unread > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </Link>
             <div className="text-right">
               <div className="text-sm font-semibold text-slate-800">{auth.user?.name}</div>
               <div className="text-xs text-slate-400">{auth.user?.roles?.join(", ")}</div>

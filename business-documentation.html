@@ -362,7 +362,7 @@
       <li><strong>Employee reports</strong> — headcount, departments, joining trends.</li>
       <li><strong>Platform reports (owner)</strong> — revenue, active companies, churn.</li>
     </ul>
-    <p>Reports can be exported to PDF, Excel, or CSV. <span class="badge">PLANNED</span></p>
+    <p>Reports can be downloaded as CSV today. <span class="badge live">AVAILABLE</span> Formatted PDF/Excel exports are planned. <span class="badge">PLANNED</span></p>
 
     <h2 id="journey-emp">Journey: an everyday employee</h2>
     <div class="journey">
@@ -458,16 +458,16 @@
       is exactly where things stand right now:</p>
       <p><strong>Built and working (the engine + the app):</strong> the <b>web application</b> itself —
       company sign-up and login, dashboards, and full screens for Employees, Attendance, Leave,
-      Payroll and Subscription/Billing — plus everything behind it: private workspaces, secure
-      logins, the five user roles and their permissions, the subscription plans and rules (seat
-      limits, upgrade/downgrade, cancel/reactivate), and billing (invoices with GST, payment
-      recording, automatic reactivation). Subscriptions also move through their lifecycle
-      automatically (trial → active → grace → expired). The back end is covered by an automated test
-      suite and the front end builds cleanly.</p>
-      <p><strong>Still coming (production polish):</strong> live connections to specific payment
-      providers such as Razorpay/Cashfree/PayU (a working manual/offline payment path exists today),
-      downloadable PDF reports, email/SMS notifications, two-factor login, and conveniences like
-      bulk employee import.</p>
+      Payroll and Subscription/Billing, plus <b>in-app notifications</b> and <b>downloadable CSV
+      reports</b> — on top of everything behind it: private workspaces, secure logins, the five user
+      roles and their permissions, the subscription plans and rules (seat limits, upgrade/downgrade,
+      cancel/reactivate), and billing with invoices (GST), a real <b>Razorpay</b> integration
+      (orders + verified webhooks), payment recording, and automatic reactivation. Subscriptions also
+      move through their lifecycle automatically (trial → active → grace → expired) and notify admins.
+      The back end is covered by an automated test suite (38 tests) and the front end builds cleanly.</p>
+      <p><strong>Still coming (minor extras):</strong> additional payment providers (Cashfree/PayU —
+      Razorpay works today), formatted PDF/Excel report exports (CSV works today), email/SMS delivery
+      of the existing in-app notifications, two-factor login, and bulk employee import.</p>
       <p>In short: the product is <strong>usable end-to-end today</strong> — sign up, add your team,
       track attendance, request and approve leave, run payroll, and manage your subscription, all
       from the browser.</p>

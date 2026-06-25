@@ -816,11 +816,15 @@ MAIL_USERNAME=...
 MAIL_PASSWORD=...
 MAIL_FROM_ADDRESS="hello@yourdomain.com"
 
-# Billing — uses the built-in "manual" gateway until you add real keys.
+# Billing — "manual" works out of the box. Razorpay is fully implemented:
+# set the keys and switch the gateway to take real card payments.
 BILLING_DEFAULT_GATEWAY=manual
-# When you integrate a provider, set its keys and switch the gateway:
 # BILLING_DEFAULT_GATEWAY=razorpay
 # RAZORPAY_KEY_ID=...  RAZORPAY_KEY_SECRET=...  RAZORPAY_WEBHOOK_SECRET=...
+# (point your Razorpay webhook to POST https://api.yourdomain.com/api/v1/webhooks/razorpay)
+
+# Notifications — in-app is always on; enable email delivery (needs MAIL_* above)
+NOTIFY_MAIL_ENABLED=false
 
 # Object storage (only needed once file uploads/exports are used)
 FILESYSTEM_DISK=s3
@@ -835,7 +839,7 @@ CORS_ALLOWED_ORIGINS=https://app.yourdomain.com
         <li><b>Change</b> the default super-admin password (<code>password</code>) — set <code>SUPER_ADMIN_PASSWORD</code> before seeding, or change it after.</li>
         <li>Use a unique, random <code>JWT_SECRET</code> and <code>DB_PASSWORD</code> per environment. Never commit <code>.env</code>.</li>
         <li>Keep <code>APP_DEBUG=false</code>. Keep Postgres (5432) and Redis (6379) bound to localhost / private network — only 80/443 should be public.</li>
-        <li>Real payment gateways (Razorpay/Cashfree/PayU) are not yet implemented — the platform falls back to the manual/offline payment adapter until those are added.</li>
+        <li>Razorpay is fully implemented (orders + signature-verified webhooks); set its keys and switch <code>BILLING_DEFAULT_GATEWAY</code> to go live. Without keys, the platform safely falls back to the manual/offline adapter. Cashfree/PayU are not yet implemented.</li>
       </ul>
     </div>
 

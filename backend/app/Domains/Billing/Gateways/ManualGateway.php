@@ -27,6 +27,11 @@ final class ManualGateway implements PaymentGateway
         return 'manual';
     }
 
+    public function isConfigured(): bool
+    {
+        return true; // always available
+    }
+
     public function createOrder(Money $amount, array $meta = []): array
     {
         return [

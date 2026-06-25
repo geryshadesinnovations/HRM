@@ -179,8 +179,8 @@
       Employee/Core-HR, Attendance, Leave, Payroll, and Billing — with subscription lifecycle
       automation, covered by a passing test suite) <b>and a Next.js web frontend</b>
       (<code>frontend/</code>) with login, registration, dashboards and screens for every module.
-      The remaining items are production-hardening niceties (real gateway adapters, report exports,
-      notifications, MFA). Every capability below is tagged so a new team knows exactly what exists:
+      The remaining items are minor (MFA, audit logs, bulk import, and the
+      Cashfree/PayU gateway adapters). Every capability below is tagged so a new team knows exactly what exists:
       <div class="legend">
         <span><span class="pill built">BUILT</span> implemented &amp; in the codebase (test-covered)</span>
         <span><span class="pill part">PARTIAL</span> core works; advanced sub-features pending</span>
@@ -209,9 +209,11 @@
         <tr><td>Payroll module (components, structures, runs, payslips, LOP proration)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Payroll/*</code>, <code>PayrollController.php</code></td></tr>
         <tr><td>Billing engine, gateway abstraction, invoices, idempotent webhooks</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Billing/*</code>, <code>SubscriptionController.php</code>, <code>WebhookController.php</code></td></tr>
         <tr><td>Subscription lifecycle job (trial→expired, active→grace→expired)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Subscription/Console/SweepSubscriptions.php</code>, scheduled hourly in <code>routes/console.php</code></td></tr>
-        <tr><td>Real payment gateway adapters (Razorpay/Cashfree/PayU)</td><td><span class="pill part">PARTIAL</span></td><td>contract + <code>ManualGateway</code> + <code>GatewayManager</code> done; provider adapters pending</td></tr>
+        <tr><td>Real payment gateway adapter (Razorpay: orders + signed webhooks)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Billing/Gateways/RazorpayGateway.php</code>; Cashfree/PayU still pending</td></tr>
         <tr><td>Next.js frontend (login, dashboards, all module screens)</td><td><span class="pill built">BUILT</span></td><td><code>frontend/</code> — Next.js 14 App Router + Tailwind; builds clean (<code>next build</code>)</td></tr>
-        <tr><td>Reporting exports, notifications, MFA, audit logs</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code>, <code>docs/09</code> (Phase 6)</td></tr>
+        <tr><td>Notifications (in-app, per-user; email channel optional)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Notification/*</code>; wired into leave, payroll, billing, lifecycle</td></tr>
+        <tr><td>Reporting (attendance/leave/payroll/employees) + CSV export</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Reporting/ReportService.php</code>, <code>ReportController</code> (<code>?format=csv</code>)</td></tr>
+        <tr><td>MFA, audit logs, bulk employee import</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code> (Phase 6)</td></tr>
         <tr><td>Infra: docker-compose, PHP-FPM image, Nginx, CI</td><td><span class="pill built">BUILT</span></td><td><code>infra/</code>, <code>.github/workflows/ci.yml</code></td></tr>
       </tbody>
     </table>
@@ -292,9 +294,9 @@ Cache/Queue → Redis      Async → queue workers (Horizon-ready)
         <tr><td>Cache</td><td>Redis. Used for entitlement caching (1h TTL, see <code>SubscriptionEngine</code>) and as cache/session store.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>Queue</td><td>Redis-backed queue; <code>horizon</code> worker container runs <code>queue:work</code>. Jobs (payroll, exports) land later.</td><td><span class="pill part">PARTIAL</span></td></tr>
         <tr><td>Storage</td><td>S3 / Cloudflare R2 compatible (config in <code>.env</code>: <code>FILESYSTEM_DISK=s3</code>). Used by documents/exports later.</td><td><span class="pill part">PARTIAL</span></td></tr>
-        <tr><td>Notification</td><td>Event → dispatcher → per-channel queued job (in-app/email/SMS).</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Notification</td><td>In-app notifications stored per user (<code>notifications</code> table); optional email channel. Fired by leave, payroll, billing, and lifecycle events.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>Subscription</td><td>Engine resolves entitlements from plan + overrides, gated by status. Central to everything.</td><td><span class="pill built">BUILT</span></td></tr>
-        <tr><td>Billing</td><td>Gateway-agnostic, webhook-driven, GST invoices.</td><td><span class="pill plan">PLANNED</span></td></tr>
+        <tr><td>Billing</td><td>Gateway-agnostic (manual + Razorpay), webhook-driven, GST invoices.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>RBAC</td><td>Spatie roles/permissions on the <code>api</code> guard; deny-by-default.</td><td><span class="pill built">BUILT</span></td></tr>
         <tr><td>API</td><td>Versioned under <code>/api/v1</code>; standard success/error envelopes.</td><td><span class="pill built">BUILT</span></td></tr>
       </tbody>
@@ -678,6 +680,11 @@ JWT_ALGO=HS256</code></pre>
     <p><b>Subscription &amp; Billing:</b> <code>GET /plans</code>, <code>GET /subscription</code>,
     <code>POST /subscription/upgrade|downgrade|cancel|reactivate</code>,
     <code>GET /invoices</code>, <code>GET /invoices/{uuid}</code>, <code>POST /billing/checkout</code>.</p>
+    <p><b>Notifications</b> (all roles): <code>GET /notifications</code>, <code>GET /notifications/unread-count</code>,
+    <code>POST /notifications/{uuid}/read</code>, <code>POST /notifications/read-all</code>.</p>
+    <p><b>Reports</b> (JSON or <code>?format=csv</code>): <code>GET /reports/employees</code>,
+    <code>GET /reports/attendance-summary</code>, <code>GET /reports/leave-balances</code>,
+    <code>GET /reports/payroll-register/{run}</code> — each gated by the relevant module + report permission.</p>
     <p>Plus Laravel's health check at <code>GET /up</code>.</p>
 
     <h4>Endpoint details (representative)</h4>
@@ -708,9 +715,9 @@ JWT_ALGO=HS256</code></pre>
 
     <h3>Not yet routed <span class="pill plan">PLANNED</span></h3>
     <p>Super-admin platform endpoints (<code>/admin/*</code> for cross-tenant company/plan/metrics
-    management), employee bulk import, and report-export endpoints remain specified in
-    <code>docs/07-API.md</code> but are not yet routed. Real payment-gateway order creation currently
-    uses the manual adapter (see §5/§17).</p>
+    management), employee bulk import, and MFA endpoints remain specified in
+    <code>docs/07-API.md</code> but are not yet routed. Razorpay is implemented; the Cashfree and PayU
+    adapters are stubs in the gateway registry.</p>
 
     <h3>API versioning strategy</h3>
     <ul>
@@ -1302,8 +1309,9 @@ docker run --rm -v hrms_pgdata:/data -v $PWD:/backup alpine \
       <p><b>HRMS SaaS — Technical Handbook.</b> Generated from the actual implementation on the
       <code>feat/foundation-architecture-and-spine</code> branch. The product is complete end-to-end:
       a tested Laravel API (Core HR, Attendance, Leave, Payroll, Billing, subscription lifecycle) and
-      a Next.js web frontend (<code>frontend/</code>). Production-polish items (real gateway adapters,
-      report exports, notifications, MFA) remain. Status tags (BUILT / PARTIAL / PLANNED) reflect the
+      a Next.js web frontend (<code>frontend/</code>), a real Razorpay gateway adapter, an in-app
+      notification system, and CSV reporting. Minor items (MFA, audit logs, bulk import, Cashfree/PayU)
+      remain. Status tags (BUILT / PARTIAL / PLANNED) reflect the
       codebase as it stands; the original design blueprint lives in <code>docs/00</code>–<code>docs/11</code>
       and <code>docs/ROADMAP.md</code>. Setup instructions: <code>setup-guide.html</code>. Non-technical
       companion: <code>business-documentation.html</code>.</p>

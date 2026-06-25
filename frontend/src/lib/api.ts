@@ -142,3 +142,20 @@ export function money(minor: number | null | undefined, currency = "INR"): strin
   const symbol = currency === "INR" ? "₹" : "";
   return `${symbol}${(minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 }
+
+/** Download a file (e.g. CSV report) from the API with the auth header. */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const headers: Record<string, string> = {};
+  if (tokenStore.access) headers["Authorization"] = `Bearer ${tokenStore.access}`;
+  const res = await fetch(`${API_URL}/api/v1${path}`, { headers });
+  if (!res.ok) throw new ApiError(res.status, "ERROR", `Download failed (${res.status})`);
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}

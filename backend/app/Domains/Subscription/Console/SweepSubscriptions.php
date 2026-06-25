@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Subscription\Console;
 
+use App\Domains\Notification\Services\NotificationService;
 use App\Domains\Subscription\Enums\SubscriptionStatus;
 use App\Domains\Subscription\Models\Subscription;
 use App\Domains\Subscription\Services\SubscriptionEngine;
@@ -21,7 +22,7 @@ use Illuminate\Support\Carbon;
  *  - grace   → expired  when grace_ends_at has passed
  *
  * Access is gated by status (see SubscriptionStatus::grantsAccess); this command
- * never deletes data. See docs/03-SUBSCRIPTION.md.
+ * never deletes data. Affected companies' admins are notified. See docs/03-SUBSCRIPTION.md.
  */
 final class SweepSubscriptions extends Command
 {
@@ -29,8 +30,10 @@ final class SweepSubscriptions extends Command
 
     protected $description = 'Advance subscription lifecycle states (trial/active/grace/expired) by date.';
 
-    public function __construct(private readonly SubscriptionEngine $engine)
-    {
+    public function __construct(
+        private readonly SubscriptionEngine $engine,
+        private readonly NotificationService $notifications,
+    ) {
         parent::__construct();
     }
 
@@ -66,7 +69,7 @@ final class SweepSubscriptions extends Command
                 $q->whereNull('current_period_end')->orWhere('current_period_end', '<', $now);
             });
 
-        return $this->transition($query, ['status' => SubscriptionStatus::Expired]);
+        return $this->transition($query, ['status' => SubscriptionStatus::Expired], 'subscription.expired', 'Your trial has ended', 'Your free trial has ended. Subscribe to keep access to your modules.');
     }
 
     private function activeToGrace(Carbon $now): int
@@ -79,7 +82,7 @@ final class SweepSubscriptions extends Command
         return $this->transition($query, [
             'status' => SubscriptionStatus::Grace,
             'grace_ends_at' => $now->copy()->addDays(5),
-        ]);
+        ], 'subscription.grace', 'Payment due', 'Your subscription period ended. You are in a short grace period — please renew to avoid interruption.');
     }
 
     private function expireGrace(Carbon $now): int
@@ -89,16 +92,17 @@ final class SweepSubscriptions extends Command
             ->whereNotNull('grace_ends_at')
             ->where('grace_ends_at', '<', $now);
 
-        return $this->transition($query, ['status' => SubscriptionStatus::Expired]);
+        return $this->transition($query, ['status' => SubscriptionStatus::Expired], 'subscription.expired', 'Subscription expired', 'Your subscription has expired and module access is paused. Renew anytime to restore it — your data is safe.');
     }
 
     /**
-     * Apply an update to all matching subscriptions and flush their entitlement
-     * caches so access changes take effect immediately.
+     * Apply an update to all matching subscriptions, flush their entitlement
+     * caches so access changes take effect immediately, and notify each
+     * affected company's admins.
      *
      * @param  array<string,mixed>  $attributes
      */
-    private function transition(Builder $query, array $attributes): int
+    private function transition(Builder $query, array $attributes, string $type, string $title, string $body): int
     {
         $companyIds = (clone $query)->pluck('company_id')->all();
 
@@ -106,6 +110,7 @@ final class SweepSubscriptions extends Command
 
         foreach (array_unique($companyIds) as $companyId) {
             $this->engine->flush((int) $companyId);
+            $this->notifications->toCompanyAdmins((int) $companyId, $type, $title, $body);
         }
 
         return $affected;

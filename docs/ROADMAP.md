@@ -19,7 +19,8 @@ build and a PR. Earlier phases unblock later ones.
 - [x] Tenant-isolation test suite in CI
 
 ### Phase 2 — Billing
-- [x] Gateway abstraction + manual adapter + GatewayManager (Razorpay/Cashfree/PayU adapters next)
+- [x] Gateway abstraction + manual adapter + GatewayManager
+- [x] Razorpay adapter (orders + signature-verified webhooks). Cashfree/PayU next
 - [x] Invoices, payments, webhooks (idempotent), tax/GST — PDF generation still pending
 - [x] Subscription lifecycle job (sweep). Auto-renew/dunning still pending
 
@@ -38,9 +39,9 @@ build and a PR. Earlier phases unblock later ones.
 - [ ] Command palette, global search, onboarding wizard
 
 ### Phase 6 — Reporting, Notifications, Hardening
-- [ ] Report engine + scheduled delivery
-- [ ] Multi-channel notifications + preferences
-- [ ] Observability (Prometheus/Grafana), load testing, security review
+- [x] Report service (attendance/leave/payroll/employees) + CSV export. Scheduled delivery + PDF still pending
+- [x] In-app notifications (per-user) wired into leave/payroll/billing/lifecycle. Email best-effort; SMS pending
+- [ ] Observability (Prometheus/Grafana), load testing, security review, MFA, audit logs
 
 ## Future Expansion Strategy
 

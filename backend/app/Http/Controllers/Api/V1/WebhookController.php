@@ -10,6 +10,7 @@ use App\Domains\Billing\Models\WebhookEvent;
 use App\Domains\Billing\Services\GatewayManager;
 use App\Domains\Billing\Services\InvoiceService;
 use App\Domains\Billing\Support\NormalizedEvent;
+use App\Domains\Notification\Services\NotificationService;
 use App\Domains\Subscription\Enums\SubscriptionStatus;
 use App\Domains\Subscription\Models\Subscription;
 use App\Domains\Subscription\Services\SubscriptionService;
@@ -35,6 +36,7 @@ final class WebhookController extends Controller
         private readonly GatewayManager $gateways,
         private readonly InvoiceService $invoices,
         private readonly SubscriptionService $subscriptions,
+        private readonly NotificationService $notifications,
         private readonly TenantContext $tenant,
     ) {}
 
@@ -97,6 +99,14 @@ final class WebhookController extends Controller
             if ($subscription !== null && $subscription->status->isBlocked()) {
                 $this->subscriptions->reactivate($subscription);
             }
+
+            $this->notifications->toCompanyAdmins(
+                (int) $invoice->company_id,
+                'billing.payment_received',
+                'Payment received',
+                "Invoice {$invoice->number} has been paid.",
+                ['invoice_uuid' => $invoice->uuid, 'invoice_number' => $invoice->number],
+            );
         });
     }
 
@@ -129,5 +139,13 @@ final class WebhookController extends Controller
                 'grace_ends_at' => now()->addDays(5),
             ]);
         }
+
+        $this->notifications->toCompanyAdmins(
+            (int) $invoice->company_id,
+            'billing.payment_failed',
+            'Payment failed',
+            "Payment for invoice {$invoice->number} failed. Please update your payment method to avoid interruption.",
+            ['invoice_uuid' => $invoice->uuid, 'invoice_number' => $invoice->number],
+        );
     }
 }

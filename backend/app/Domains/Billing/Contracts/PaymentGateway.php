@@ -20,6 +20,13 @@ interface PaymentGateway
     public function name(): string;
 
     /**
+     * Whether this adapter has the credentials it needs to talk to the provider.
+     * Used by GatewayManager to fall back to the manual adapter in dev/unconfigured
+     * environments so checkout keeps working.
+     */
+    public function isConfigured(): bool;
+
+    /**
      * Create a payment order/intent for an amount.
      *
      * @param  array<string,mixed>  $meta

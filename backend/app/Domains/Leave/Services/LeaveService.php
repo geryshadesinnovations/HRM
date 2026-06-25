@@ -10,6 +10,7 @@ use App\Domains\Leave\Models\LeaveBalance;
 use App\Domains\Leave\Models\LeaveRequest;
 use App\Domains\Leave\Models\LeaveRequestApproval;
 use App\Domains\Leave\Models\LeaveType;
+use App\Domains\Notification\Services\NotificationService;
 use App\Domains\Subscription\Contracts\FeatureAccess;
 use App\Platform\Exceptions\ApiException;
 use App\Platform\Support\ErrorCode;
@@ -27,6 +28,7 @@ final class LeaveService
     public function __construct(
         private readonly FeatureAccess $access,
         private readonly AttendanceService $attendance,
+        private readonly NotificationService $notifications,
     ) {}
 
     public function request(Employee $employee, LeaveType $type, string $start, string $end, ?string $reason = null): LeaveRequest
@@ -51,7 +53,7 @@ final class LeaveService
             );
         }
 
-        return LeaveRequest::create([
+        $leave = LeaveRequest::create([
             'employee_id' => $employee->id,
             'leave_type_id' => $type->id,
             'start_date' => $startDate->toDateString(),
@@ -60,6 +62,17 @@ final class LeaveService
             'status' => 'pending',
             'reason' => $reason,
         ]);
+
+        // Notify company admins that a request awaits approval.
+        $this->notifications->toCompanyAdmins(
+            (int) $employee->company_id,
+            'leave.requested',
+            'New leave request',
+            "{$employee->full_name} requested {$days} day(s) of {$type->name}.",
+            ['leave_request_uuid' => $leave->uuid],
+        );
+
+        return $leave;
     }
 
     public function approve(LeaveRequest $request, ?int $actorUserId, ?string $note = null): LeaveRequest
@@ -85,6 +98,15 @@ final class LeaveService
                 $this->markAttendanceAsLeave($request);
             }
 
+            $this->notifications->toUser(
+                $request->employee->user_id,
+                (int) $request->employee->company_id,
+                'leave.approved',
+                'Leave approved',
+                "Your {$request->leaveType->name} from {$request->start_date->toDateString()} to {$request->end_date->toDateString()} was approved.",
+                ['leave_request_uuid' => $request->uuid],
+            );
+
             return $request->refresh();
         });
     }
@@ -102,6 +124,15 @@ final class LeaveService
                 'decision' => 'rejected',
                 'note' => $note,
             ]);
+
+            $this->notifications->toUser(
+                $request->employee->user_id,
+                (int) $request->employee->company_id,
+                'leave.rejected',
+                'Leave rejected',
+                "Your {$request->leaveType->name} request was rejected.".($note ? " Note: {$note}" : ''),
+                ['leave_request_uuid' => $request->uuid],
+            );
 
             return $request->refresh();
         });

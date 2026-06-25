@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DepartmentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\LeaveController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PayrollController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\WebhookController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,12 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
     Route::get('me/entitlements', [AuthController::class, 'entitlements']);
+
+    // --- Notifications (per-user, all roles) ---
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markRead']);
 
     // --- Core HR (Employees, Departments, Designations) ---
     Route::get('employees', [EmployeeController::class, 'index'])->middleware('permission:employee.profile.view');
@@ -80,6 +88,12 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
     });
     Route::get('payslips/{payslip}', [PayrollController::class, 'showPayslip'])
         ->middleware(['module:payroll', 'permission:payroll.payslip.view.own']);
+
+    // --- Reports (JSON, or CSV download with ?format=csv) ---
+    Route::get('reports/employees', [ReportController::class, 'employees'])->middleware('permission:employee.profile.view');
+    Route::get('reports/attendance-summary', [ReportController::class, 'attendanceSummary'])->middleware(['module:attendance', 'permission:attendance.report.view']);
+    Route::get('reports/leave-balances', [ReportController::class, 'leaveBalances'])->middleware(['module:leave', 'permission:leave.view']);
+    Route::get('reports/payroll-register/{run}', [ReportController::class, 'payrollRegister'])->middleware(['module:payroll', 'permission:payroll.report.view']);
 
     // --- Subscription & Billing (company self-service) ---
     Route::get('plans', [SubscriptionController::class, 'plans']);
