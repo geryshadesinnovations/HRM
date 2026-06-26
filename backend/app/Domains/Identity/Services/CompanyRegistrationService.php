@@ -35,6 +35,7 @@ final class CompanyRegistrationService
         string $adminEmail,
         string $password,
         ?string $planCode = null,
+        array $profile = [],
     ): array {
         if (User::where('email', $adminEmail)->exists()) {
             throw new ApiException(ErrorCode::ValidationFailed, 'Email already in use.', ['email' => ['taken']], 422);
@@ -44,11 +45,16 @@ final class CompanyRegistrationService
             ? Plan::where('code', $planCode)->where('is_active', true)->firstOrFail()
             : Plan::where('is_active', true)->where('is_public', true)->orderBy('base_price')->firstOrFail();
 
-        return DB::transaction(function () use ($companyName, $adminName, $adminEmail, $password, $plan) {
+        return DB::transaction(function () use ($companyName, $adminName, $adminEmail, $password, $plan, $profile) {
             $company = Company::create([
                 'name' => $companyName,
                 'slug' => $this->uniqueSlug($companyName),
                 'status' => 'active',
+                'phone' => $profile['phone'] ?? null,
+                'gstin' => $profile['gstin'] ?? null,
+                'industry' => $profile['industry'] ?? null,
+                'employees_estimate' => $profile['employees_estimate'] ?? null,
+                'address' => $profile['address'] ?? null,
             ]);
 
             // Operate within the new tenant for the rest of the transaction.

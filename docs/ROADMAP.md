@@ -65,3 +65,17 @@ build and a PR. Earlier phases unblock later ones.
 3. Tests (incl. tenant isolation) pass in CI.
 4. Documented in the relevant `docs/` file if behavior/schema changed.
 5. Pushed to a branch with an open PR for review.
+
+
+### Phase 7 — SaaS Owner Portal & Public Website
+- [x] Super Admin platform analytics dashboard (companies, MRR/ARR, subscriptions, module usage, renewals, health)
+- [x] Company management: list/search/filter, suspend/activate, soft-delete, reset password, secure impersonation
+- [x] Plan & pricing management (CRUD, duplicate, enable/disable) — drives public pricing
+- [x] Public marketing website (hero, features, dynamic pricing, FAQ, contact form)
+- [x] Contact inquiries inbox (public submit + admin manage)
+- [x] Company registration profile fields (phone, GST, industry, headcount, address)
+- [x] Light/Dark theme switcher
+- [ ] Deep employee records + document vault (req #5)
+- [ ] Attendance breaks, correction workflow, GPS/biometric (req #6)
+- [ ] Payroll two-mode + period lock + adjustment audit (req #7)
+- [ ] Command palette, global search, coupons/discounts/taxes, full doc regeneration

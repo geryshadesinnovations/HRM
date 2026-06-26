@@ -211,6 +211,12 @@
         <tr><td>Subscription lifecycle job (trial→expired, active→grace→expired)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Subscription/Console/SweepSubscriptions.php</code>, scheduled hourly in <code>routes/console.php</code></td></tr>
         <tr><td>Real payment gateway adapter (Razorpay: orders + signed webhooks)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Billing/Gateways/RazorpayGateway.php</code>; Cashfree/PayU still pending</td></tr>
         <tr><td>Next.js frontend (login, dashboards, all module screens)</td><td><span class="pill built">BUILT</span></td><td><code>frontend/</code> — Next.js 14 App Router + Tailwind; builds clean (<code>next build</code>)</td></tr>
+        <tr><td>Super Admin portal (analytics, company mgmt, impersonation, plan mgmt, contact inbox)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Platform/*</code>, <code>Http/Controllers/Api/V1/Admin/*</code>; UI under <code>frontend/.../admin</code></td></tr>
+        <tr><td>Public marketing site (hero, features, dynamic pricing, FAQ, contact form)</td><td><span class="pill built">BUILT</span></td><td><code>frontend/src/app/page.tsx</code>, <code>PublicController</code> (<code>/public/plans</code>, <code>/public/contact</code>)</td></tr>
+        <tr><td>Light / Dark theme switcher</td><td><span class="pill built">BUILT</span></td><td><code>frontend/src/lib/theme.tsx</code> (class-based, persisted)</td></tr>
+        <tr><td>Deep employee records + document vault</td><td><span class="pill plan">PLANNED</span></td><td>basic profile built; full personal/salary fields + uploads pending (req #5)</td></tr>
+        <tr><td>Attendance break in/out, correction workflow, GPS/biometric</td><td><span class="pill part">PARTIAL</span></td><td>check-in/out + worked/overtime built; breaks/corrections/GPS pending (req #6)</td></tr>
+        <tr><td>Payroll two-mode + period lock + adjustment audit</td><td><span class="pill part">PARTIAL</span></td><td>runs/payslips/LOP built; explicit period lock + audit trail pending (req #7)</td></tr>
         <tr><td>Notifications (in-app, per-user; email channel optional)</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Notification/*</code>; wired into leave, payroll, billing, lifecycle</td></tr>
         <tr><td>Reporting (attendance/leave/payroll/employees) + CSV export</td><td><span class="pill built">BUILT</span></td><td><code>Domains/Reporting/ReportService.php</code>, <code>ReportController</code> (<code>?format=csv</code>)</td></tr>
         <tr><td>MFA, audit logs, bulk employee import</td><td><span class="pill plan">PLANNED</span></td><td><code>docs/08</code> (Phase 6)</td></tr>
@@ -685,6 +691,16 @@ JWT_ALGO=HS256</code></pre>
     <p><b>Reports</b> (JSON or <code>?format=csv</code>): <code>GET /reports/employees</code>,
     <code>GET /reports/attendance-summary</code>, <code>GET /reports/leave-balances</code>,
     <code>GET /reports/payroll-register/{run}</code> — each gated by the relevant module + report permission.</p>
+    <p><b>Public (no auth):</b> <code>GET /public/plans</code> (dynamic pricing for the landing page),
+    <code>POST /public/contact</code> (contact form).</p>
+    <p><b>Super Admin</b> (<code>auth:api</code> + <code>superadmin</code>, no tenant scope):
+    <code>GET /admin/dashboard</code> (platform analytics);
+    <code>GET /admin/companies</code>, <code>GET /admin/companies/{uuid}</code>,
+    <code>POST /admin/companies/{uuid}/suspend|activate|reset-password|impersonate</code>,
+    <code>DELETE /admin/companies/{uuid}</code> (soft);
+    <code>GET/POST /admin/plans</code>, <code>PUT /admin/plans/{id}</code>,
+    <code>POST /admin/plans/{id}/duplicate|toggle</code>, <code>DELETE /admin/plans/{id}</code>;
+    <code>GET /admin/contact-inquiries</code>, <code>PATCH /admin/contact-inquiries/{uuid}</code>.</p>
     <p>Plus Laravel's health check at <code>GET /up</code>.</p>
 
     <h4>Endpoint details (representative)</h4>
@@ -714,10 +730,9 @@ JWT_ALGO=HS256</code></pre>
   }'</code></pre>
 
     <h3>Not yet routed <span class="pill plan">PLANNED</span></h3>
-    <p>Super-admin platform endpoints (<code>/admin/*</code> for cross-tenant company/plan/metrics
-    management), employee bulk import, and MFA endpoints remain specified in
-    <code>docs/07-API.md</code> but are not yet routed. Razorpay is implemented; the Cashfree and PayU
-    adapters are stubs in the gateway registry.</p>
+    <p>Employee bulk import, employee document upload/vault, attendance break/correction endpoints,
+    and MFA remain specified in <code>docs/07-API.md</code> but are not yet routed. Razorpay is
+    implemented; the Cashfree and PayU adapters are stubs in the gateway registry.</p>
 
     <h3>API versioning strategy</h3>
     <ul>
@@ -1310,8 +1325,11 @@ docker run --rm -v hrms_pgdata:/data -v $PWD:/backup alpine \
       <code>feat/foundation-architecture-and-spine</code> branch. The product is complete end-to-end:
       a tested Laravel API (Core HR, Attendance, Leave, Payroll, Billing, subscription lifecycle) and
       a Next.js web frontend (<code>frontend/</code>), a real Razorpay gateway adapter, an in-app
-      notification system, and CSV reporting. Minor items (MFA, audit logs, bulk import, Cashfree/PayU)
-      remain. Status tags (BUILT / PARTIAL / PLANNED) reflect the
+      notification system, CSV reporting, a <b>Super Admin platform console</b> (analytics, company
+      management, impersonation, plan/pricing management, contact inbox), a <b>public marketing site</b>
+      with dynamic pricing, and a light/dark theme. Minor items (deep employee records + document
+      vault, attendance breaks/corrections, payroll period-lock audit, MFA, Cashfree/PayU) remain.
+      Status tags (BUILT / PARTIAL / PLANNED) reflect the
       codebase as it stands; the original design blueprint lives in <code>docs/00</code>–<code>docs/11</code>
       and <code>docs/ROADMAP.md</code>. Setup instructions: <code>setup-guide.html</code>. Non-technical
       companion: <code>business-documentation.html</code>.</p>

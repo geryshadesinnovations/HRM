@@ -24,7 +24,7 @@ class Company extends Model
 
     protected $fillable = [
         'uuid', 'name', 'slug', 'status', 'timezone', 'currency',
-        'country', 'gstin', 'settings',
+        'country', 'gstin', 'settings', 'phone', 'industry', 'employees_estimate', 'address',
     ];
 
     protected $casts = [

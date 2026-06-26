@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\AdminCompanyController;
+use App\Http\Controllers\Api\V1\Admin\AdminContactController;
+use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DepartmentController;
@@ -9,6 +13,7 @@ use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\LeaveController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PayrollController;
+use App\Http\Controllers\Api\V1\PublicController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\WebhookController;
@@ -29,6 +34,33 @@ Route::prefix('auth')->group(function (): void {
 
 // Public, signature-verified gateway webhooks (no auth / no tenant).
 Route::post('webhooks/{gateway}', [WebhookController::class, 'handle']);
+
+// Public marketing site endpoints (no auth): dynamic pricing + contact form.
+Route::get('public/plans', [PublicController::class, 'plans']);
+Route::post('public/contact', [PublicController::class, 'contact']);
+
+// --- Super Admin platform console (no tenant scope) ---
+Route::middleware(['auth:api', 'superadmin'])->prefix('admin')->group(function (): void {
+    Route::get('dashboard', [AdminDashboardController::class, 'index']);
+
+    Route::get('companies', [AdminCompanyController::class, 'index']);
+    Route::get('companies/{company}', [AdminCompanyController::class, 'show']);
+    Route::post('companies/{company}/suspend', [AdminCompanyController::class, 'suspend']);
+    Route::post('companies/{company}/activate', [AdminCompanyController::class, 'activate']);
+    Route::delete('companies/{company}', [AdminCompanyController::class, 'destroy']);
+    Route::post('companies/{company}/reset-password', [AdminCompanyController::class, 'resetPassword']);
+    Route::post('companies/{company}/impersonate', [AdminCompanyController::class, 'impersonate']);
+
+    Route::get('plans', [AdminPlanController::class, 'index']);
+    Route::post('plans', [AdminPlanController::class, 'store']);
+    Route::match(['put', 'patch'], 'plans/{plan}', [AdminPlanController::class, 'update']);
+    Route::delete('plans/{plan}', [AdminPlanController::class, 'destroy']);
+    Route::post('plans/{plan}/duplicate', [AdminPlanController::class, 'duplicate']);
+    Route::post('plans/{plan}/toggle', [AdminPlanController::class, 'toggle']);
+
+    Route::get('contact-inquiries', [AdminContactController::class, 'index']);
+    Route::match(['put', 'patch'], 'contact-inquiries/{inquiry}', [AdminContactController::class, 'update']);
+});
 
 Route::middleware(['auth:api', 'tenant'])->group(function (): void {
     Route::post('auth/logout', [AuthController::class, 'logout']);

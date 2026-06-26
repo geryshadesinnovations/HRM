@@ -3,6 +3,7 @@
 use App\Domains\Subscription\Console\SweepSubscriptions;
 use App\Http\Middleware\EnsureFeatureAccess;
 use App\Http\Middleware\EnsureModuleAccess;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\ResolveTenant;
 use App\Platform\Exceptions\ApiException;
 use App\Platform\Http\ApiResponse;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant' => ResolveTenant::class,
+            'superadmin' => EnsureSuperAdmin::class,
             'module' => EnsureModuleAccess::class,
             'feature' => EnsureFeatureAccess::class,
             'permission' => PermissionMiddleware::class,

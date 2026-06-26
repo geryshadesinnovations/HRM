@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
@@ -25,6 +25,15 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Honour ?plan=<code> from the public pricing page links.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    if (plan && ["starter", "growth", "enterprise"].includes(plan)) {
+      setForm((f) => ({ ...f, plan_code: plan }));
+    }
+  }, []);
 
   function set(k: string, v: string) {
     setForm((f) => ({ ...f, [k]: v }));

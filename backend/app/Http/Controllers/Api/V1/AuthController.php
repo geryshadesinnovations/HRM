@@ -30,6 +30,7 @@ final class AuthController extends Controller
             $request->string('email')->toString(),
             $request->string('password')->toString(),
             $request->input('plan_code'),
+            $request->only(['phone', 'gstin', 'industry', 'employees_estimate', 'address']),
         );
 
         $tokens = $this->auth->issueTokens($result['user'], $request);

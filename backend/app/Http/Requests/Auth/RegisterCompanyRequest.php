@@ -21,6 +21,12 @@ final class RegisterCompanyRequest extends FormRequest
             'email' => ['required', 'email', 'max:160'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'plan_code' => ['nullable', 'string', 'exists:plans,code'],
+            // Optional company profile (req #3, step 1)
+            'phone' => ['nullable', 'string', 'max:30'],
+            'gstin' => ['nullable', 'string', 'max:20'],
+            'industry' => ['nullable', 'string', 'max:80'],
+            'employees_estimate' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+            'address' => ['nullable', 'string', 'max:500'],
         ];
     }
 }
