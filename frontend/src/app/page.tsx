@@ -35,6 +35,33 @@ const FAQS = [
   ["Do employees get their own login?", "Yes, when your plan includes self-attendance, each employee gets a self-service portal."],
 ];
 
+const WHY = [
+  { icon: "⚡", title: "Live in minutes", body: "Self-serve onboarding wizard and bulk CSV import get your whole team set up the same day." },
+  { icon: "🧩", title: "Modular by design", body: "Turn modules on or off per plan. Pay only for attendance, leave, payroll, or the full suite." },
+  { icon: "🔐", title: "Secure & isolated", body: "Strict multi-tenant isolation, role-based access, and encrypted statutory identifiers." },
+  { icon: "🌍", title: "Built for India & beyond", body: "GST invoicing, PF/ESI/TDS-ready payroll, and multi-currency support out of the box." },
+  { icon: "📈", title: "Scales with you", body: "From a 5-person startup to thousands of employees across departments and locations." },
+  { icon: "🤝", title: "Real support", body: "Human help during onboarding and a clear migration path — never locked in." },
+];
+
+const COMPARISON: Array<[string, boolean | string, boolean | string, boolean | string]> = [
+  // [feature, Starter, Growth, Enterprise]
+  ["Employees & departments", true, true, true],
+  ["Attendance & leave", true, true, true],
+  ["Payroll & payslips", false, true, true],
+  ["Statutory PF / ESI / TDS", false, true, true],
+  ["GPS-tagged attendance", false, true, true],
+  ["Biometric devices", false, false, true],
+  ["Employee self-service login", false, true, true],
+  ["Priority support & SLA", false, false, true],
+];
+
+const TESTIMONIALS = [
+  { quote: "We replaced three tools and a pile of spreadsheets. Payroll that used to take two days now takes an hour.", name: "Operations Lead", role: "120-person services firm" },
+  { quote: "The attendance-to-payroll flow just works. Loss-of-pay is calculated automatically and we trust the numbers.", name: "HR Manager", role: "Manufacturing SME" },
+  { quote: "Onboarding was genuinely under 15 minutes. The bulk import saved us an entire afternoon.", name: "Founder", role: "Early-stage startup" },
+];
+
 export default function Landing() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -71,6 +98,7 @@ export default function Landing() {
           </div>
           <nav className="hidden gap-6 text-sm font-medium text-slate-600 md:flex">
             <a href="#features" className="hover:text-brand-600">Features</a>
+            <a href="#why" className="hover:text-brand-600">Why us</a>
             <a href="#pricing" className="hover:text-brand-600">Pricing</a>
             <a href="#faq" className="hover:text-brand-600">FAQ</a>
             <a href="#contact" className="hover:text-brand-600">Contact</a>
@@ -119,6 +147,25 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Why choose us */}
+      <section id="why" className="bg-slate-900 py-20 text-white">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-center text-3xl font-bold">Why teams choose us</h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-slate-300">
+            Powerful where it matters, simple where it counts.
+          </p>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {WHY.map((w) => (
+              <div key={w.title} className="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+                <div className="text-2xl">{w.icon}</div>
+                <h3 className="mt-3 font-bold">{w.title}</h3>
+                <p className="mt-1 text-sm text-slate-300">{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing (dynamic) */}
       <section id="pricing" className="bg-slate-50 py-20">
         <div className="mx-auto max-w-6xl px-6">
@@ -161,6 +208,55 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Plan comparison */}
+      <section className="mx-auto max-w-5xl px-6 py-20">
+        <h2 className="text-center text-3xl font-bold text-slate-900">Compare plans</h2>
+        <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
+          Every plan grows with you. Here&apos;s what&apos;s included where.
+        </p>
+        <div className="mt-10 overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-900">
+                <th className="py-3 text-left font-semibold">Capability</th>
+                <th className="py-3 text-center font-semibold">Starter</th>
+                <th className="py-3 text-center font-semibold text-brand-700">Growth</th>
+                <th className="py-3 text-center font-semibold">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARISON.map(([feature, s, g, e]) => (
+                <tr key={feature as string} className="border-b border-slate-100">
+                  <td className="py-3 text-slate-600">{feature}</td>
+                  <td className="py-3 text-center">{cell(s)}</td>
+                  <td className="py-3 text-center">{cell(g)}</td>
+                  <td className="py-3 text-center">{cell(e)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="bg-slate-50 py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-center text-3xl font-bold text-slate-900">Loved by HR teams</h2>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {TESTIMONIALS.map((t) => (
+              <figure key={t.name} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="text-2xl text-brand-400">&ldquo;</div>
+                <blockquote className="mt-1 text-sm text-slate-600">{t.quote}</blockquote>
+                <figcaption className="mt-4 text-sm">
+                  <span className="font-semibold text-slate-900">{t.name}</span>
+                  <span className="block text-xs text-slate-400">{t.role}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-6 py-20">
         <h2 className="text-center text-3xl font-bold text-slate-900">Frequently asked questions</h2>
@@ -181,15 +277,23 @@ export default function Landing() {
       <footer className="border-t border-slate-100 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm text-slate-400 md:flex-row">
           <div>© {new Date().getFullYear()} HRMS SaaS. All rights reserved.</div>
-          <div className="flex gap-5">
-            <a href="#" className="hover:text-slate-600">Privacy</a>
-            <a href="#" className="hover:text-slate-600">Terms</a>
+          <div className="flex flex-wrap gap-5">
+            <Link href="/about" className="hover:text-slate-600">About</Link>
+            <Link href="/privacy" className="hover:text-slate-600">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-600">Terms</Link>
+            <a href="/docs/index.html" target="_blank" rel="noreferrer" className="hover:text-slate-600">Docs</a>
+            <a href="#contact" className="hover:text-slate-600">Contact</a>
             <Link href="/login" className="hover:text-slate-600">Sign in</Link>
           </div>
         </div>
       </footer>
     </div>
   );
+}
+
+function cell(v: boolean | string) {
+  if (typeof v === "string") return <span className="text-slate-600">{v}</span>;
+  return v ? <span className="text-emerald-600">✓</span> : <span className="text-slate-300">—</span>;
 }
 
 function ContactSection() {

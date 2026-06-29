@@ -23,9 +23,18 @@ type Run = {
   period_year: number;
   period_month: number;
   status: string;
+  mode?: string;
   total_gross: number | null;
   total_deductions: number | null;
   total_net: number | null;
+};
+type Adjustment = {
+  uuid: string;
+  type: string;
+  label: string;
+  amount: number;
+  note: string | null;
+  employee?: { first_name: string; last_name: string | null } | null;
 };
 type Payslip = {
   uuid: string;
@@ -69,6 +78,7 @@ function Runs() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+  const [mode, setMode] = useState("attendance_payroll");
   const [payslips, setPayslips] = useState<Record<string, Payslip[]>>({});
 
   const load = useCallback(async () => {
@@ -88,7 +98,7 @@ function Runs() {
   async function createRun() {
     setMsg(null);
     try {
-      const run = await api<Run>("/payroll/runs", { method: "POST", body: { year, month } });
+      const run = await api<Run>("/payroll/runs", { method: "POST", body: { year, month, mode } });
       setRuns((r) => [run, ...r.filter((x) => x.uuid !== run.uuid)]);
       setMsg({ kind: "success", text: `Run for ${MONTHS[month - 1]} ${year} created (draft).` });
     } catch (err) {
@@ -114,7 +124,18 @@ function Runs() {
     try {
       const updated = await api<Run>(`/payroll/runs/${run.uuid}/publish`, { method: "POST", body: {} });
       setRuns((r) => r.map((x) => (x.uuid === run.uuid ? updated : x)));
-      setMsg({ kind: "success", text: "Run published & locked." });
+      setMsg({ kind: "success", text: "Run published & locked. Attendance for the period is now locked." });
+    } catch (err) {
+      setMsg({ kind: "error", text: (err as ApiError).message });
+    }
+  }
+
+  async function reopen(run: Run) {
+    setMsg(null);
+    try {
+      const updated = await api<Run>(`/payroll/runs/${run.uuid}/reopen`, { method: "POST", body: {} });
+      setRuns((r) => r.map((x) => (x.uuid === run.uuid ? updated : x)));
+      setMsg({ kind: "success", text: "Run reopened. Attendance for the period is unlocked; recompute when ready." });
     } catch (err) {
       setMsg({ kind: "error", text: (err as ApiError).message });
     }
@@ -144,13 +165,22 @@ function Runs() {
               ))}
             </select>
           </label>
+          <label className="block">
+            <span className="label">Mode</span>
+            <select className="input w-52" value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="attendance_payroll">Attendance + Payroll</option>
+              <option value="payroll_only">Payroll only</option>
+            </select>
+          </label>
           <button className="btn-primary" onClick={createRun}>
             Create run
           </button>
         </div>
         <p className="mt-3 text-xs text-slate-400">
-          Create the run, then Process it to compute payslips for every active employee with a salary
-          structure (loss-of-pay is prorated from attendance). Publish locks the run.
+          <strong>Attendance + Payroll</strong> prorates loss-of-pay from attendance automatically.
+          <strong> Payroll only</strong> ignores attendance (enter/import it manually). Process computes
+          payslips for every active employee with a salary structure; Publish locks the run and the
+          attendance period.
         </p>
       </Card>
 
@@ -169,6 +199,7 @@ function Runs() {
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
                     <Badge color={statusColor(run.status)}>{run.status}</Badge>
+                    {run.mode && <Badge color="slate">{run.mode === "payroll_only" ? "payroll only" : "attendance + payroll"}</Badge>}
                     {run.total_net != null && <span>Net: {money(run.total_net)}</span>}
                   </div>
                 </div>
@@ -183,8 +214,15 @@ function Runs() {
                       Publish
                     </button>
                   )}
+                  {run.status === "locked" && (
+                    <button className="btn-ghost" onClick={() => reopen(run)}>
+                      Reopen
+                    </button>
+                  )}
                 </div>
               </div>
+
+              <Adjustments run={run} />
               {payslips[run.uuid] && payslips[run.uuid].length > 0 && (
                 <div className="mt-4">
                   <Table head={["Employee", "Gross", "Deductions", "LOP days", "Net"]}>
@@ -428,5 +466,97 @@ function Structures() {
       </div>
       <p className="mt-3 text-xs text-slate-400">Amounts are monthly, entered in rupees.</p>
     </Card>
+  );
+}
+
+
+function Adjustments({ run }: { run: Run }) {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<Adjustment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ type: "bonus", label: "", amount: 0, note: "" });
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setRows((await api<Adjustment[]>(`/payroll/runs/${run.uuid}/adjustments`)) || []);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
+  }, [run.uuid]);
+
+  useEffect(() => {
+    if (open) load();
+  }, [open, load]);
+
+  async function add() {
+    setMsg(null);
+    try {
+      await api(`/payroll/runs/${run.uuid}/adjustments`, {
+        method: "POST",
+        body: { type: form.type, label: form.label, amount: Math.round(form.amount * 100), note: form.note || undefined },
+      });
+      setForm({ type: "bonus", label: "", amount: 0, note: "" });
+      load();
+    } catch (err) {
+      setMsg((err as ApiError).message);
+    }
+  }
+
+  return (
+    <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+      <button className="text-sm font-medium text-brand-600 hover:underline" onClick={() => setOpen((o) => !o)}>
+        {open ? "Hide" : "Bonuses, incentives & penalties"}
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3">
+          {msg && <Alert kind="error">{msg}</Alert>}
+          {run.status !== "locked" && (
+            <div className="grid items-end gap-2 sm:grid-cols-5">
+              <label className="block">
+                <span className="label">Type</span>
+                <select className="input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                  <option value="bonus">Bonus</option>
+                  <option value="incentive">Incentive</option>
+                  <option value="penalty">Penalty</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="label">Label</span>
+                <input className="input" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Diwali bonus" />
+              </label>
+              <label className="block">
+                <span className="label">Amount (₹)</span>
+                <input type="number" className="input" value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} />
+              </label>
+              <button className="btn-primary" onClick={add} disabled={!form.label}>
+                Add
+              </button>
+            </div>
+          )}
+          <p className="text-xs text-slate-400">Use negative amounts for penalties/deductions. Re-process the run to apply employee-specific adjustments.</p>
+          {loading ? (
+            <Spinner />
+          ) : rows.length === 0 ? (
+            <Empty message="No adjustments recorded." />
+          ) : (
+            <Table head={["Type", "Label", "Amount", "Note"]}>
+              {rows.map((a) => (
+                <tr key={a.uuid}>
+                  <Td><Badge color={a.type === "penalty" ? "red" : a.type === "lock" || a.type === "reopen" ? "blue" : "green"}>{a.type}</Badge></Td>
+                  <Td className="font-medium text-slate-800 dark:text-slate-200">{a.label}</Td>
+                  <Td>{a.amount ? money(a.amount) : "—"}</Td>
+                  <Td className="text-slate-500">{a.note || "—"}</Td>
+                </tr>
+              ))}
+            </Table>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

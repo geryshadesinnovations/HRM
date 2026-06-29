@@ -35,8 +35,10 @@ final class UpdateEmployeeRequest extends FormRequest
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')->where('company_id', $companyId)],
             'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')->where('company_id', $companyId)],
             'manager_id' => ['nullable', 'integer', Rule::exists('employees', 'id')->where('company_id', $companyId)],
+            'shift_id' => ['nullable', 'integer', Rule::exists('shifts', 'id')->where('company_id', $companyId)],
             'date_of_joining' => ['nullable', 'date'],
             'status' => ['sometimes', Rule::in(Employee::STATUSES)],
+            ...EmployeeProfileRules::rules(),
         ];
     }
 }

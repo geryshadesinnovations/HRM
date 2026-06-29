@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { api } from "@/lib/api";
 import { Badge, statusColor } from "./ui";
+import CommandPalette from "./CommandPalette";
 
 type NavItem = {
   href: string;
@@ -98,6 +99,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
+      <CommandPalette navItems={items.map((n) => ({ href: n.href, label: n.label, icon: n.icon }))} />
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:flex">
         <div className="flex items-center gap-2 px-5 py-5">
@@ -149,6 +151,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div className="md:hidden text-sm font-bold text-slate-900 dark:text-white">HRMS SaaS</div>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+              className="hidden items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 sm:flex"
+              title="Search (⌘K)"
+            >
+              🔍 Search
+              <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono dark:bg-slate-800">⌘K</span>
+            </button>
             <button
               onClick={toggle}
               className="flex h-9 w-9 items-center justify-center rounded-lg text-lg hover:bg-slate-100 dark:hover:bg-slate-800"

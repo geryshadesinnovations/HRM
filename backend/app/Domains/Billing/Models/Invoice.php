@@ -23,17 +23,20 @@ class Invoice extends Model
     public const STATUSES = ['draft', 'open', 'paid', 'void', 'uncollectible'];
 
     protected $fillable = [
-        'uuid', 'company_id', 'subscription_id', 'number', 'status',
-        'subtotal', 'tax_total', 'total', 'currency', 'gstin',
-        'issued_at', 'due_at', 'paid_at', 'meta',
+        'uuid', 'company_id', 'subscription_id', 'coupon_id', 'number', 'status',
+        'subtotal', 'tax_total', 'discount_total', 'total', 'currency', 'gstin',
+        'issued_at', 'due_at', 'attempts', 'next_attempt_at', 'paid_at', 'meta',
     ];
 
     protected $casts = [
         'subtotal' => 'integer',
         'tax_total' => 'integer',
+        'discount_total' => 'integer',
         'total' => 'integer',
+        'attempts' => 'integer',
         'issued_at' => 'datetime',
         'due_at' => 'datetime',
+        'next_attempt_at' => 'datetime',
         'paid_at' => 'datetime',
         'meta' => 'array',
     ];

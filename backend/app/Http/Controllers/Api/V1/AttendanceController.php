@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domains\Attendance\Models\AttendanceCorrectionRequest;
 use App\Domains\Attendance\Models\AttendanceRecord;
+use App\Domains\Attendance\Services\AttendanceCorrectionService;
 use App\Domains\Attendance\Services\AttendanceService;
 use App\Domains\Employee\Models\Employee;
 use App\Http\Controllers\Controller;
@@ -22,7 +24,10 @@ use Illuminate\Validation\Rule;
  */
 final class AttendanceController extends Controller
 {
-    public function __construct(private readonly AttendanceService $service) {}
+    public function __construct(
+        private readonly AttendanceService $service,
+        private readonly AttendanceCorrectionService $corrections,
+    ) {}
 
     /** HR: mark a single employee, or bulk-mark many, for a date. */
     public function mark(Request $request): JsonResponse
@@ -55,20 +60,105 @@ final class AttendanceController extends Controller
         return ApiResponse::success($record, status: 201);
     }
 
-    /** Employee self check-in. */
+    /** Employee self check-in (optionally GPS-tagged). */
     public function checkIn(Request $request): JsonResponse
     {
-        $record = $this->service->checkIn($this->currentEmployee($request));
-
-        return ApiResponse::success($record, status: 201);
-    }
-
-    /** Employee self check-out. */
-    public function checkOut(Request $request): JsonResponse
-    {
-        $record = $this->service->checkOut($this->currentEmployee($request));
+        $record = $this->service->checkIn($this->currentEmployee($request), null, $this->geo($request));
 
         return ApiResponse::success($record);
+    }
+
+    /** Employee self check-out (optionally GPS-tagged). */
+    public function checkOut(Request $request): JsonResponse
+    {
+        $record = $this->service->checkOut($this->currentEmployee($request), null, $this->geo($request));
+
+        return ApiResponse::success($record);
+    }
+
+    /**
+     * @return array{lat?:float|null,lng?:float|null,method?:string}
+     */
+    private function geo(Request $request): array
+    {
+        $data = $request->validate([
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
+        ]);
+
+        return [
+            'lat' => isset($data['lat']) ? (float) $data['lat'] : null,
+            'lng' => isset($data['lng']) ? (float) $data['lng'] : null,
+            'method' => isset($data['lat']) ? 'gps' : 'web',
+        ];
+    }
+
+    /** Employee starts a break. */
+    public function breakIn(Request $request): JsonResponse
+    {
+        $record = $this->service->breakIn($this->currentEmployee($request));
+
+        return ApiResponse::success($record);
+    }
+
+    /** Employee ends a break. */
+    public function breakOut(Request $request): JsonResponse
+    {
+        $record = $this->service->breakOut($this->currentEmployee($request));
+
+        return ApiResponse::success($record);
+    }
+
+    /** List attendance correction requests (optionally filtered by status). */
+    public function corrections(Request $request): JsonResponse
+    {
+        $query = AttendanceCorrectionRequest::query()
+            ->with('employee:id,uuid,first_name,last_name')
+            ->orderByDesc('id');
+
+        if ($status = $request->string('status')->toString()) {
+            $query->where('status', $status);
+        }
+
+        $paginator = $query->paginate(min((int) $request->integer('per_page', 20), 100));
+
+        return ApiResponse::paginated($paginator);
+    }
+
+    /** Raise an attendance correction request for the current employee. */
+    public function storeCorrection(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'work_date' => ['required', 'date'],
+            'requested_check_in' => ['nullable', 'date'],
+            'requested_check_out' => ['nullable', 'date'],
+            'requested_status' => ['nullable', Rule::in(AttendanceRecord::STATUSES)],
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $correction = $this->corrections->create($this->currentEmployee($request), $data, $request->user()?->getKey());
+
+        return ApiResponse::success($correction, status: 201);
+    }
+
+    /** Approve a correction request and apply it to the attendance record. */
+    public function approveCorrection(Request $request, AttendanceCorrectionRequest $correction): JsonResponse
+    {
+        $note = $request->validate(['note' => ['nullable', 'string', 'max:255']])['note'] ?? null;
+
+        return ApiResponse::success(
+            $this->corrections->approve($correction, $request->user()?->getKey(), $note),
+        );
+    }
+
+    /** Reject a correction request. */
+    public function rejectCorrection(Request $request, AttendanceCorrectionRequest $correction): JsonResponse
+    {
+        $note = $request->validate(['note' => ['nullable', 'string', 'max:255']])['note'] ?? null;
+
+        return ApiResponse::success(
+            $this->corrections->reject($correction, $request->user()?->getKey(), $note),
+        );
     }
 
     /** List attendance, optionally filtered by employee uuid and date range. */

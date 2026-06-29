@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Billing\Services;
 
+use App\Domains\Billing\Models\Coupon;
 use App\Domains\Billing\Models\Invoice;
 use App\Domains\Subscription\Models\Subscription;
 use App\Platform\Support\Money;
@@ -13,8 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Builds invoices for a subscription period: base plan + extra seats + add-on
- * modules, with GST applied. Invoice numbers are sequential per financial year
- * (INV-2026-000123). Money in minor units.
+ * modules, an optional coupon discount, with GST applied. Invoice numbers are
+ * sequential per financial year (INV-2026-000123). Money in minor units.
  *
  * See docs/04-BILLING.md.
  */
@@ -23,17 +24,18 @@ final class InvoiceService
     public function __construct(
         private readonly TaxCalculator $tax,
         private readonly TenantContext $tenant,
+        private readonly CouponService $coupons,
     ) {}
 
     /**
      * Create an `open` invoice for the subscription's current period.
      */
-    public function createForSubscription(Subscription $subscription): Invoice
+    public function createForSubscription(Subscription $subscription, ?Coupon $coupon = null): Invoice
     {
         $plan = $subscription->plan;
         $currency = $plan?->currency ?? 'INR';
 
-        return DB::transaction(function () use ($subscription, $plan, $currency) {
+        return DB::transaction(function () use ($subscription, $plan, $currency, $coupon) {
             $invoice = Invoice::create([
                 'company_id' => $subscription->company_id,
                 'subscription_id' => $subscription->id,
@@ -42,6 +44,7 @@ final class InvoiceService
                 'currency' => $currency,
                 'subtotal' => 0,
                 'tax_total' => 0,
+                'discount_total' => 0,
                 'total' => 0,
                 'issued_at' => now(),
                 'due_at' => now()->addDays(7),
@@ -72,14 +75,31 @@ final class InvoiceService
                 }
             }
 
-            $taxAmount = $this->tax->taxFor($subtotal);
-            $total = $subtotal->add($taxAmount);
+            // Optional coupon discount (reduces the taxable base).
+            $discount = 0;
+            if ($coupon !== null) {
+                $discount = $coupon->discountFor($subtotal->minor);
+                if ($discount > 0) {
+                    $this->addLine($invoice, "Discount ({$coupon->code})", 1, -$discount);
+                    $invoice->coupon_id = $coupon->id;
+                }
+            }
+
+            $taxableMinor = max(0, $subtotal->minor - $discount);
+            $taxAmount = $this->tax->taxFor(Money::of($taxableMinor, $currency));
+            $total = Money::of($taxableMinor, $currency)->add($taxAmount);
 
             $invoice->update([
                 'subtotal' => $subtotal->minor,
+                'discount_total' => $discount,
                 'tax_total' => $taxAmount->minor,
                 'total' => $total->minor,
+                'coupon_id' => $invoice->coupon_id,
             ]);
+
+            if ($coupon !== null && $discount > 0) {
+                $this->coupons->redeem($coupon, (int) $subscription->company_id, $invoice, $discount);
+            }
 
             return $invoice->load('lines');
         });

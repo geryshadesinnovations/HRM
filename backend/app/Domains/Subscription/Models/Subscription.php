@@ -25,13 +25,14 @@ class Subscription extends Model
     protected $fillable = [
         'uuid', 'company_id', 'plan_id', 'status', 'seats',
         'trial_ends_at', 'current_period_start', 'current_period_end',
-        'grace_ends_at', 'cancelled_at', 'auto_renew', 'overrides',
+        'grace_ends_at', 'cancelled_at', 'auto_renew', 'dunning_attempts', 'overrides',
     ];
 
     protected $casts = [
         'status' => SubscriptionStatus::class,
         'seats' => 'integer',
         'auto_renew' => 'boolean',
+        'dunning_attempts' => 'integer',
         'overrides' => 'array',
         'trial_ends_at' => 'datetime',
         'current_period_start' => 'datetime',

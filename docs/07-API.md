@@ -108,3 +108,68 @@ GET    /admin/subscriptions  /admin/payments  /admin/invoices  /admin/audit-logs
 
 Full OpenAPI 3.1 spec will live at `backend/openapi.yaml` and can be referenced from
 steering/specs via `#[[file:backend/openapi.yaml]]`.
+
+
+---
+
+## Endpoints added (Phase 7 enhancements)
+
+All require `auth:api` + `tenant`; permissions noted per route.
+
+### Employees — deep records & bulk import
+
+| Method | Path | Permission | Notes |
+|--------|------|------------|-------|
+| `POST` | `/employees/import` | `employee.import` | Multipart CSV upload. Returns `{summary:{total,created,failed}, rows:[...]}`. `207` if any row failed, `201` otherwise. |
+| `GET` | `/employees/import/template` | `employee.import` | Downloads a CSV template with the recognised columns. |
+
+Create/update employee endpoints now accept the deep-record fields (personal,
+contact, employment, salary/statutory). Sensitive identifiers are masked on read.
+
+### Employee document vault
+
+| Method | Path | Permission |
+|--------|------|------------|
+| `GET` | `/employees/{employee}/documents` | `employee.document.view` |
+| `POST` | `/employees/{employee}/documents` | `employee.document.manage` (multipart: `type`, `title?`, `file` ≤10 MB) |
+| `GET` | `/employee-documents/{document}/download` | `employee.document.view` |
+| `DELETE` | `/employee-documents/{document}` | `employee.document.manage` |
+
+### Attendance — breaks & corrections
+
+| Method | Path | Permission |
+|--------|------|------------|
+| `POST` | `/attendance/break-in` | `attendance.self` |
+| `POST` | `/attendance/break-out` | `attendance.self` |
+| `GET` | `/attendance/corrections` | `attendance.view` |
+| `POST` | `/attendance/corrections` | `attendance.correction.request` |
+| `POST` | `/attendance/corrections/{correction}/approve` | `attendance.correction.approve` |
+| `POST` | `/attendance/corrections/{correction}/reject` | `attendance.correction.approve` |
+
+### Payroll — mode, reopen & adjustments
+
+| Method | Path | Permission |
+|--------|------|------------|
+| `POST` | `/payroll/runs` (now accepts `mode`) | `payroll.run.execute` |
+| `POST` | `/payroll/runs/{run}/reopen` | `payroll.run.reopen` |
+| `GET` | `/payroll/runs/{run}/adjustments` | `payroll.run.execute` |
+| `POST` | `/payroll/runs/{run}/adjustments` | `payroll.run.execute` |
+
+
+
+---
+
+## Endpoints added (Phase 7 — GPS/biometric, statutory, coupons, search)
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `POST` | `/attendance/check-in` / `check-out` | tenant + `attendance.self` | Accept optional `lat`,`lng` (GPS, feature `attendance.gps`) |
+| `GET/POST/DELETE` | `/attendance/devices` | tenant + `attendance.device.manage` + feature `attendance.biometric` | Register/list/revoke devices; POST returns the token once |
+| `POST` | `/attendance/biometric/punch` | device token (`X-Device-Token`) | Public ingestion; `{ employee_code, at? }` |
+| `GET/PUT` | `/payroll/settings` | tenant + `payroll.structure.manage` | Statutory PF/ESI/TDS config |
+| `GET` | `/search?q=` | tenant | Command-palette global search |
+| `POST` | `/public/coupon` | public | Validate/preview a coupon |
+| `GET/POST/PATCH/DELETE` | `/admin/coupons` | superadmin | Coupon CRUD |
+| `POST` | `/subscription/upgrade`, `/subscription/reactivate` | tenant + `company.subscription.manage` | Accept optional `coupon_code` |
+
+Console: `php artisan billing:cycle` (auto-renew + dunning, run daily).

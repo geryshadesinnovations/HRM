@@ -74,11 +74,12 @@ export default function AttendancePage() {
     }
   }
 
-  async function selfAction(kind: "check-in" | "check-out") {
+  async function selfAction(kind: "check-in" | "check-out" | "break-in" | "break-out") {
     setMsg(null);
     try {
       await api(`/attendance/${kind}`, { method: "POST" });
-      setMsg({ kind: "success", text: `You have ${kind === "check-in" ? "checked in" : "checked out"}.` });
+      const verb = { "check-in": "checked in", "check-out": "checked out", "break-in": "started a break", "break-out": "ended your break" }[kind];
+      setMsg({ kind: "success", text: `You have ${verb}.` });
       loadRecords();
     } catch (err) {
       const e = err as ApiError;
@@ -109,12 +110,18 @@ export default function AttendancePage() {
             Check in when you start and out when you finish. Working hours and overtime are computed
             automatically.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button className="btn-primary" onClick={() => selfAction("check-in")}>
               Check in
             </button>
             <button className="btn-ghost" onClick={() => selfAction("check-out")}>
               Check out
+            </button>
+            <button className="btn-ghost" onClick={() => selfAction("break-in")}>
+              Start break
+            </button>
+            <button className="btn-ghost" onClick={() => selfAction("break-out")}>
+              End break
             </button>
           </div>
         </Card>
@@ -176,6 +183,137 @@ export default function AttendancePage() {
               <Td>{r.worked_minutes != null ? `${Math.floor(r.worked_minutes / 60)}h ${r.worked_minutes % 60}m` : "—"}</Td>
               <Td>{r.overtime_minutes ? `${Math.floor(r.overtime_minutes / 60)}h ${r.overtime_minutes % 60}m` : "—"}</Td>
               <Td className="text-slate-500">{r.source}</Td>
+            </tr>
+          ))}
+        </Table>
+      )}
+
+      <Corrections />
+    </div>
+  );
+}
+
+type Correction = {
+  uuid: string;
+  work_date: string;
+  requested_status: string | null;
+  reason: string;
+  status: string;
+  review_note: string | null;
+  employee?: { first_name: string; last_name: string | null };
+};
+
+function Corrections() {
+  const { can } = useAuth();
+  const [rows, setRows] = useState<Correction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [form, setForm] = useState({ work_date: today(), requested_status: "present", reason: "" });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await apiPaged<Correction[]>("/attendance/corrections?per_page=50");
+      setRows(r.data || []);
+    } catch {
+      /* module may be gated */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function raise() {
+    setMsg(null);
+    try {
+      await api("/attendance/corrections", { method: "POST", body: form });
+      setMsg({ kind: "success", text: "Correction request submitted." });
+      setForm({ work_date: today(), requested_status: "present", reason: "" });
+      load();
+    } catch (err) {
+      setMsg({ kind: "error", text: (err as ApiError).message });
+    }
+  }
+
+  async function review(c: Correction, action: "approve" | "reject") {
+    setMsg(null);
+    try {
+      await api(`/attendance/corrections/${c.uuid}/${action}`, { method: "POST", body: {} });
+      setMsg({ kind: "success", text: `Request ${action}d.` });
+      load();
+    } catch (err) {
+      setMsg({ kind: "error", text: (err as ApiError).message });
+    }
+  }
+
+  return (
+    <div className="mt-8">
+      <h3 className="mb-3 font-semibold text-slate-800 dark:text-slate-200">Attendance corrections</h3>
+      {msg && (
+        <div className="mb-4">
+          <Alert kind={msg.kind}>{msg.text}</Alert>
+        </div>
+      )}
+
+      <Card className="mb-4">
+        <h4 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Request a correction</h4>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <label className="block">
+            <span className="label">Date</span>
+            <input type="date" className="input" value={form.work_date} onChange={(e) => setForm({ ...form, work_date: e.target.value })} />
+          </label>
+          <label className="block">
+            <span className="label">Desired status</span>
+            <select className="input" value={form.requested_status} onChange={(e) => setForm({ ...form, requested_status: e.target.value })}>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="half_day">Half day</option>
+              <option value="leave">Leave</option>
+              <option value="holiday">Holiday</option>
+            </select>
+          </label>
+          <label className="block sm:col-span-2">
+            <span className="label">Reason</span>
+            <input className="input" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} placeholder="Forgot to check in…" />
+          </label>
+        </div>
+        <button className="btn-primary mt-3" onClick={raise} disabled={!form.reason}>
+          Submit request
+        </button>
+      </Card>
+
+      {loading ? (
+        <Spinner />
+      ) : rows.length === 0 ? (
+        <Empty message="No correction requests." />
+      ) : (
+        <Table head={["Date", "Employee", "Wants", "Reason", "Status", ""]}>
+          {rows.map((c) => (
+            <tr key={c.uuid}>
+              <Td>{c.work_date?.slice(0, 10)}</Td>
+              <Td className="font-medium text-slate-800 dark:text-slate-200">
+                {c.employee ? `${c.employee.first_name} ${c.employee.last_name || ""}` : "—"}
+              </Td>
+              <Td>{c.requested_status || "—"}</Td>
+              <Td className="text-slate-500">{c.reason}</Td>
+              <Td>
+                <Badge color={statusColor(c.status)}>{c.status}</Badge>
+              </Td>
+              <Td>
+                {c.status === "pending" && can("attendance.correction.approve") && (
+                  <div className="flex gap-3">
+                    <button className="text-sm font-medium text-emerald-600 hover:underline" onClick={() => review(c, "approve")}>
+                      Approve
+                    </button>
+                    <button className="text-sm font-medium text-red-600 hover:underline" onClick={() => review(c, "reject")}>
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </Td>
             </tr>
           ))}
         </Table>

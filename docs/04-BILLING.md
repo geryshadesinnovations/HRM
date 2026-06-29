@@ -67,3 +67,28 @@ CASHFREE_APP_ID=...  CASHFREE_SECRET=...
 PAYU_MERCHANT_KEY=... PAYU_SALT=...
 TAX_COUNTRY=IN  COMPANY_GSTIN=...
 ```
+
+
+
+---
+
+## Coupons, dunning & auto-renew (Phase 7)
+
+**Coupons** are platform-level discounts (`coupons` table) managed by the Super
+Admin at `/admin/coupons`. A coupon is `percent` or `fixed`, optionally scoped to
+a plan, time-boxed (`starts_at`/`expires_at`), and capped (`max_redemptions`). A
+company may redeem a given coupon once. Applying a coupon adds a negative line to
+the invoice and the discounted base is what GST is computed on; `coupon_redemptions`
+records the audit.
+
+- Public preview: `POST /public/coupon` `{ code, plan_code? }`.
+- Checkout: `POST /subscription/upgrade` (and `reactivate`) accept `coupon_code`.
+
+**Auto-renew & dunning** are handled by `php artisan billing:cycle` (run daily):
+
+- *Auto-renew* — active subscriptions with `auto_renew` whose period has ended get
+  a fresh period and a new open invoice.
+- *Dunning* — overdue open invoices are retried up to 3 times (`attempts`,
+  `next_attempt_at`). On the final failure the invoice is marked `uncollectible`
+  and the subscription moves to a 7-day `grace` window before suspension. Company
+  admins are notified at each step.
