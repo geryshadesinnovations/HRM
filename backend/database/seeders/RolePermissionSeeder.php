@@ -27,13 +27,15 @@ class RolePermissionSeeder extends Seeder
         // Employees
         'employee.profile.view', 'employee.profile.create', 'employee.profile.update',
         'employee.profile.delete', 'employee.import',
+        'employee.document.view', 'employee.document.manage',
         // Attendance
         'attendance.mark', 'attendance.self', 'attendance.view', 'attendance.report.view',
+        'attendance.correction.request', 'attendance.correction.approve',
         // Leave
         'leave.request.create', 'leave.request.approve', 'leave.type.manage', 'leave.view',
         // Payroll
-        'payroll.structure.manage', 'payroll.run.execute', 'payroll.payslip.view.any',
-        'payroll.payslip.view.own', 'payroll.report.view',
+        'payroll.structure.manage', 'payroll.run.execute', 'payroll.run.reopen',
+        'payroll.payslip.view.any', 'payroll.payslip.view.own', 'payroll.report.view',
     ];
 
     private const ROLES = [
@@ -43,27 +45,34 @@ class RolePermissionSeeder extends Seeder
             'company.roles.manage', 'company.audit.view',
             'employee.profile.view', 'employee.profile.create', 'employee.profile.update',
             'employee.profile.delete', 'employee.import',
+            'employee.document.view', 'employee.document.manage',
             'attendance.mark', 'attendance.self', 'attendance.view', 'attendance.report.view',
+            'attendance.correction.request', 'attendance.correction.approve',
             'leave.request.create', 'leave.request.approve', 'leave.type.manage', 'leave.view',
-            'payroll.structure.manage', 'payroll.run.execute', 'payroll.payslip.view.any',
-            'payroll.payslip.view.own', 'payroll.report.view',
+            'payroll.structure.manage', 'payroll.run.execute', 'payroll.run.reopen',
+            'payroll.payslip.view.any', 'payroll.payslip.view.own', 'payroll.report.view',
         ],
         'HR Manager' => [
             'employee.profile.view', 'employee.profile.create', 'employee.profile.update', 'employee.import',
+            'employee.document.view', 'employee.document.manage',
             'attendance.mark', 'attendance.self', 'attendance.view', 'attendance.report.view',
+            'attendance.correction.request', 'attendance.correction.approve',
             'leave.request.create', 'leave.request.approve', 'leave.type.manage', 'leave.view',
-            'payroll.structure.manage', 'payroll.run.execute', 'payroll.payslip.view.any',
-            'payroll.payslip.view.own', 'payroll.report.view',
+            'payroll.structure.manage', 'payroll.run.execute', 'payroll.run.reopen',
+            'payroll.payslip.view.any', 'payroll.payslip.view.own', 'payroll.report.view',
         ],
         'Manager' => [
             'employee.profile.view',
+            'employee.document.view',
             'attendance.self', 'attendance.view',
+            'attendance.correction.request', 'attendance.correction.approve',
             'leave.request.create', 'leave.request.approve', 'leave.view',
             'payroll.payslip.view.own',
         ],
         'Employee' => [
             'employee.profile.view',
             'attendance.self',
+            'attendance.correction.request',
             'leave.request.create', 'leave.view',
             'payroll.payslip.view.own',
         ],

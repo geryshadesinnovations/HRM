@@ -94,9 +94,10 @@ final class PayrollController extends Controller
         $data = $request->validate([
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'month' => ['required', 'integer', 'min:1', 'max:12'],
+            'mode' => ['nullable', Rule::in(PayrollRun::MODES)],
         ]);
 
-        $run = $this->service->createRun($data['year'], $data['month']);
+        $run = $this->service->createRun($data['year'], $data['month'], $data['mode'] ?? 'attendance_payroll');
 
         return ApiResponse::success($run, status: 201);
     }
@@ -109,6 +110,42 @@ final class PayrollController extends Controller
     public function publish(PayrollRun $run): JsonResponse
     {
         return ApiResponse::success($this->service->publish($run));
+    }
+
+    /** Reopen a locked run (unlocks the attendance period). */
+    public function reopen(Request $request, PayrollRun $run): JsonResponse
+    {
+        $note = $request->validate(['note' => ['nullable', 'string', 'max:500']])['note'] ?? null;
+
+        return ApiResponse::success($this->service->reopen($run, $request->user()?->getKey(), $note));
+    }
+
+    /** List the audit trail of adjustments for a run. */
+    public function adjustments(PayrollRun $run): JsonResponse
+    {
+        return ApiResponse::success(
+            $run->adjustments()->with('employee:id,uuid,first_name,last_name')->orderByDesc('id')->get(),
+        );
+    }
+
+    /** Record a bonus / incentive / penalty / other adjustment for a run. */
+    public function storeAdjustment(Request $request, PayrollRun $run): JsonResponse
+    {
+        $data = $request->validate([
+            'type' => ['required', Rule::in(['bonus', 'incentive', 'penalty', 'other'])],
+            'label' => ['required', 'string', 'max:160'],
+            'amount' => ['required', 'integer'],
+            'employee' => ['nullable', 'string'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if (! empty($data['employee'])) {
+            $data['employee_id'] = Employee::where('uuid', $data['employee'])->value('id');
+        }
+
+        $adjustment = $this->service->addAdjustment($run, $data, $request->user()?->getKey());
+
+        return ApiResponse::success($adjustment, status: 201);
     }
 
     public function payslips(PayrollRun $run): JsonResponse

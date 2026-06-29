@@ -6,6 +6,7 @@ namespace App\Domains\Payroll\Services;
 
 use App\Domains\Employee\Models\Employee;
 use App\Domains\Notification\Services\NotificationService;
+use App\Domains\Payroll\Models\PayrollAdjustment;
 use App\Domains\Payroll\Models\PayrollRun;
 use App\Domains\Payroll\Models\Payslip;
 use App\Domains\Payroll\Models\SalaryStructure;
@@ -31,13 +32,16 @@ final class PayrollService
         private readonly NotificationService $notifications,
     ) {}
 
-    public function createRun(int $year, int $month): PayrollRun
+    public function createRun(int $year, int $month, string $mode = 'attendance_payroll'): PayrollRun
     {
         // Module access is asserted at the route; assert again defensively.
         $this->access->assert('payroll');
 
         if ($month < 1 || $month > 12) {
             throw new ApiException(ErrorCode::ValidationFailed, 'Month must be 1-12.', [], 422);
+        }
+        if (! in_array($mode, PayrollRun::MODES, true)) {
+            throw new ApiException(ErrorCode::ValidationFailed, 'Invalid payroll mode.', ['mode' => PayrollRun::MODES], 422);
         }
 
         $existing = PayrollRun::where('period_year', $year)->where('period_month', $month)->first();
@@ -49,6 +53,7 @@ final class PayrollService
             'period_year' => $year,
             'period_month' => $month,
             'status' => 'draft',
+            'mode' => $mode,
         ]);
     }
 
@@ -63,7 +68,10 @@ final class PayrollService
         }
 
         $daysInMonth = Carbon::create($run->period_year, $run->period_month, 1)->daysInMonth;
-        $attendanceLicensed = $this->access->canAccessModule('attendance') && Schema::hasTable('attendance_records');
+        // Attendance only drives loss-of-pay in "attendance_payroll" mode.
+        $attendanceLicensed = $run->mode === 'attendance_payroll'
+            && $this->access->canAccessModule('attendance')
+            && Schema::hasTable('attendance_records');
 
         return DB::transaction(function () use ($run, $daysInMonth, $attendanceLicensed) {
             $run->update(['status' => 'processing']);
@@ -76,8 +84,27 @@ final class PayrollService
                 ->whereHas('employee', fn ($q) => $q->where('status', 'active'))
                 ->get();
 
+            // Monetary adjustments (bonus/incentive/penalty/other) per employee.
+            $adjustmentsByEmployee = $run->adjustments()
+                ->whereIn('type', ['bonus', 'incentive', 'penalty', 'other'])
+                ->whereNotNull('employee_id')
+                ->get()
+                ->groupBy('employee_id');
+
             foreach ($structures as $structure) {
                 $slip = $this->computePayslip($structure, $run, $daysInMonth, $attendanceLicensed);
+
+                // Apply ad-hoc adjustments (positive = earning, negative = deduction).
+                $adjLines = [];
+                $adjTotal = 0;
+                foreach ($adjustmentsByEmployee->get($structure->employee_id, collect()) as $adj) {
+                    $adjTotal += (int) $adj->amount;
+                    $adjLines[] = ['code' => strtoupper($adj->type), 'name' => $adj->label, 'amount' => (int) $adj->amount];
+                }
+                if ($adjLines !== []) {
+                    $slip['net'] += $adjTotal;
+                    $slip['breakdown']['adjustments'] = $adjLines;
+                }
 
                 $totalGross += $slip['gross'];
                 $totalDeductions += $slip['deductions'];
@@ -114,7 +141,22 @@ final class PayrollService
             throw new ApiException(ErrorCode::ValidationFailed, 'Only a completed run can be published/locked.', [], 422);
         }
 
-        $run->update(['status' => 'locked']);
+        DB::transaction(function () use ($run): void {
+            $run->update(['status' => 'locked', 'locked_at' => now()]);
+
+            // Lock the attendance period so finalized days can't be edited (req #7).
+            $start = Carbon::create($run->period_year, $run->period_month, 1)->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+
+            if (Schema::hasTable('attendance_records')) {
+                DB::table('attendance_records')
+                    ->where('company_id', $run->company_id)
+                    ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+                    ->update(['locked' => true, 'updated_at' => now()]);
+            }
+
+            $this->audit($run, 'lock', 'Payroll period locked', null, null);
+        });
 
         // Notify each employee that their payslip is available.
         $period = Carbon::create($run->period_year, $run->period_month, 1)->format('F Y');
@@ -129,7 +171,78 @@ final class PayrollService
             );
         });
 
-        return $run;
+        return $run->refresh();
+    }
+
+    /**
+     * Reopen a locked run (req #7): unlock the attendance period and return the
+     * run to "completed" so it can be recomputed. Audited. Gated by
+     * `payroll.run.reopen` at the route.
+     */
+    public function reopen(PayrollRun $run, ?int $userId, ?string $note): PayrollRun
+    {
+        if ($run->status !== 'locked') {
+            throw new ApiException(ErrorCode::ValidationFailed, 'Only a locked run can be reopened.', [], 422);
+        }
+
+        DB::transaction(function () use ($run, $userId, $note): void {
+            $run->update([
+                'status' => 'completed',
+                'reopened_at' => now(),
+                'reopened_by' => $userId,
+            ]);
+
+            $start = Carbon::create($run->period_year, $run->period_month, 1)->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+
+            if (Schema::hasTable('attendance_records')) {
+                DB::table('attendance_records')
+                    ->where('company_id', $run->company_id)
+                    ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+                    ->update(['locked' => false, 'updated_at' => now()]);
+            }
+
+            $this->audit($run, 'reopen', 'Payroll period reopened', null, $note, $userId);
+        });
+
+        return $run->refresh();
+    }
+
+    /**
+     * Record a payroll adjustment (bonus/incentive/penalty/other) for a run,
+     * optionally targeting one employee. Recompute the run to apply it.
+     *
+     * @param  array<string,mixed>  $data
+     */
+    public function addAdjustment(PayrollRun $run, array $data, ?int $userId): PayrollAdjustment
+    {
+        if ($run->status === 'locked') {
+            throw new ApiException(ErrorCode::ValidationFailed, 'Reopen the run before adding adjustments.', [], 422);
+        }
+
+        return $this->audit(
+            $run,
+            $data['type'],
+            $data['label'],
+            isset($data['employee_id']) ? (int) $data['employee_id'] : null,
+            $data['note'] ?? null,
+            $userId,
+            (int) ($data['amount'] ?? 0),
+        );
+    }
+
+    private function audit(PayrollRun $run, string $type, string $label, ?int $employeeId, ?string $note, ?int $userId = null, int $amount = 0): PayrollAdjustment
+    {
+        return PayrollAdjustment::create([
+            'company_id' => $run->company_id,
+            'payroll_run_id' => $run->id,
+            'employee_id' => $employeeId,
+            'type' => $type,
+            'label' => $label,
+            'amount' => $amount,
+            'note' => $note,
+            'created_by' => $userId,
+        ]);
     }
 
     /**

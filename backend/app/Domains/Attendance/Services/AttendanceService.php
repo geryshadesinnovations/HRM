@@ -28,8 +28,14 @@ final class AttendanceService
     {
         $this->assertStatus($status);
 
+        $date = Carbon::parse($workDate)->toDateString();
+        $existing = AttendanceRecord::where('employee_id', $employee->id)->where('work_date', $date)->first();
+        if ($existing !== null) {
+            $this->assertNotLocked($existing);
+        }
+
         return AttendanceRecord::updateOrCreate(
-            ['employee_id' => $employee->id, 'work_date' => Carbon::parse($workDate)->toDateString()],
+            ['employee_id' => $employee->id, 'work_date' => $date],
             ['status' => $status, 'source' => $source],
         );
     }
@@ -53,8 +59,14 @@ final class AttendanceService
                 continue;
             }
 
+            $date = Carbon::parse($workDate)->toDateString();
+            $existing = AttendanceRecord::where('employee_id', $employee->id)->where('work_date', $date)->first();
+            if ($existing !== null && $existing->locked) {
+                continue; // never overwrite a locked (finalized) day
+            }
+
             AttendanceRecord::updateOrCreate(
-                ['employee_id' => $employee->id, 'work_date' => Carbon::parse($workDate)->toDateString()],
+                ['employee_id' => $employee->id, 'work_date' => $date],
                 ['status' => $status, 'source' => $source],
             );
             $count++;
@@ -70,6 +82,7 @@ final class AttendanceService
     {
         $at ??= now();
         $record = $this->todayRecord($employee, $at);
+        $this->assertNotLocked($record);
 
         if ($record->check_in !== null) {
             throw new ApiException(ErrorCode::ValidationFailed, 'Already checked in today.', [], 422);
@@ -91,6 +104,7 @@ final class AttendanceService
     {
         $at ??= now();
         $record = $this->todayRecord($employee, $at);
+        $this->assertNotLocked($record);
 
         if ($record->check_in === null) {
             throw new ApiException(ErrorCode::ValidationFailed, 'You must check in before checking out.', [], 422);
@@ -98,8 +112,12 @@ final class AttendanceService
         if ($record->check_out !== null) {
             throw new ApiException(ErrorCode::ValidationFailed, 'Already checked out today.', [], 422);
         }
+        if ($record->break_in !== null && $record->break_out === null) {
+            throw new ApiException(ErrorCode::ValidationFailed, 'End your break before checking out.', [], 422);
+        }
 
-        $worked = max(0, $record->check_in->diffInMinutes($at));
+        $gross = max(0, $record->check_in->diffInMinutes($at));
+        $worked = max(0, $gross - (int) $record->break_minutes);
         $fullDay = self::DEFAULT_FULL_DAY_MINUTES;
 
         $record->fill([
@@ -107,6 +125,46 @@ final class AttendanceService
             'worked_minutes' => $worked,
             'overtime_minutes' => max(0, $worked - $fullDay),
             'status' => $worked < ($fullDay / 2) ? 'half_day' : 'present',
+        ])->save();
+
+        return $record;
+    }
+
+    /** Employee starts a break. */
+    public function breakIn(Employee $employee, ?Carbon $at = null): AttendanceRecord
+    {
+        $at ??= now();
+        $record = $this->todayRecord($employee, $at);
+        $this->assertNotLocked($record);
+
+        if ($record->check_in === null) {
+            throw new ApiException(ErrorCode::ValidationFailed, 'Check in before starting a break.', [], 422);
+        }
+        if ($record->break_in !== null && $record->break_out === null) {
+            throw new ApiException(ErrorCode::ValidationFailed, 'You are already on a break.', [], 422);
+        }
+
+        $record->fill(['break_in' => $at, 'break_out' => null])->save();
+
+        return $record;
+    }
+
+    /** Employee ends a break; accumulates total break minutes. */
+    public function breakOut(Employee $employee, ?Carbon $at = null): AttendanceRecord
+    {
+        $at ??= now();
+        $record = $this->todayRecord($employee, $at);
+        $this->assertNotLocked($record);
+
+        if ($record->break_in === null || $record->break_out !== null) {
+            throw new ApiException(ErrorCode::ValidationFailed, 'You are not currently on a break.', [], 422);
+        }
+
+        $minutes = max(0, $record->break_in->diffInMinutes($at));
+
+        $record->fill([
+            'break_out' => $at,
+            'break_minutes' => (int) $record->break_minutes + $minutes,
         ])->save();
 
         return $record;
@@ -127,6 +185,18 @@ final class AttendanceService
                 ErrorCode::ValidationFailed,
                 'Invalid attendance status.',
                 ['status' => AttendanceRecord::STATUSES],
+                422,
+            );
+        }
+    }
+
+    private function assertNotLocked(AttendanceRecord $record): void
+    {
+        if ($record->exists && $record->locked) {
+            throw new ApiException(
+                ErrorCode::ValidationFailed,
+                'This day is locked by a finalized payroll period and cannot be changed.',
+                ['work_date' => (string) $record->work_date],
                 422,
             );
         }

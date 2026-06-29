@@ -284,3 +284,57 @@ This keeps indexes small and supports fast pruning.
 - Seeders provide canonical modules, features, default plans, permissions, and a
   demo tenant for local/dev.
 - Reference data (modules/features/permissions) is idempotently re-seedable.
+
+
+---
+
+## Enhancement schema (employee records, documents, attendance, payroll)
+
+These additive migrations (`2026_06_29_0001xx_*`) extend the schema without
+breaking existing data. All new business tables carry `company_id` and are
+tenant-scoped.
+
+### `employees` (expanded — deep records)
+
+New nullable columns grouped by concern:
+
+- **Personal:** `profile_photo_path`, `gender`, `date_of_birth`, `blood_group`,
+  `marital_status`, `nationality`.
+- **Contact:** `emergency_contact_name`, `emergency_contact_phone`,
+  `current_address`, `permanent_address`.
+- **Employment:** `employment_type` (`full_time|part_time|contract|intern`),
+  `work_location`, `shift_id` → `shifts`, `confirmation_date`, `date_of_exit`.
+- **Salary / statutory:** `bank_account_name`, `bank_account_number`*,
+  `bank_ifsc`, `pan`*, `aadhaar`*, `uan`, `pf_number`, `esi_number`.
+
+\* Stored in `text` columns and **encrypted at rest** via Eloquent `encrypted`
+casts. API responses mask all but the last 4 characters.
+
+### `employee_documents` (new — document vault)
+
+Versioned, tenant- and employee-scoped document metadata. Binary content lives
+on a private disk; only the path is stored. Columns: `uuid`, `company_id`,
+`employee_id`, `type`, `title`, `original_name`, `disk`, `path`, `mime`,
+`size`, `version`, `uploaded_by`, soft deletes. Re-uploading the same `type`
+inserts a new row with `version = max(version)+1`, preserving history.
+
+### `attendance_records` (expanded)
+
+Added: `break_in`, `break_out`, `break_minutes`, `late_minutes`,
+`early_minutes`, `locked` (set true when a payroll period is finalized), `notes`.
+Locked rows reject edits until the period is reopened.
+
+### `attendance_correction_requests` (new)
+
+Audit trail for the correction workflow: `uuid`, `company_id`, `employee_id`,
+`work_date`, `requested_check_in`, `requested_check_out`, `requested_status`,
+`reason`, `status` (`pending|approved|rejected`), `requested_by`,
+`reviewed_by`, `reviewed_at`, `review_note`.
+
+### `payroll_runs` (expanded) + `payroll_adjustments` (new)
+
+`payroll_runs` gains `mode` (`payroll_only|attendance_payroll`), `locked_at`,
+`reopened_at`, `reopened_by`. `payroll_adjustments` is an immutable audit line
+per run: `type` (`bonus|incentive|penalty|other|lock|reopen|recalculate`),
+`label`, `amount` (minor units, may be negative), `note`, optional
+`employee_id`, `created_by`.

@@ -64,3 +64,19 @@ $this->authorize('approve', $leaveRequest); // LeaveRequestPolicy checks manager
 - **Middleware**: `permission:*` (RBAC) + `module:*` / `feature:*` (subscription).
 - **Policies**: object-level checks (ownership, team membership, same tenant).
 - Deny-by-default: missing permission ⇒ `403 FORBIDDEN`.
+
+
+---
+
+## Added permissions (Phase 7 enhancements)
+
+| Permission | Granted to (built-in roles) | Purpose |
+|------------|-----------------------------|---------|
+| `employee.document.view` | Company Admin, HR Manager, Manager | View/download an employee's vault documents |
+| `employee.document.manage` | Company Admin, HR Manager | Upload / delete vault documents |
+| `attendance.correction.request` | Company Admin, HR Manager, Manager, Employee | Raise an attendance correction request |
+| `attendance.correction.approve` | Company Admin, HR Manager, Manager | Approve / reject correction requests |
+| `payroll.run.reopen` | Company Admin, HR Manager | Reopen a locked payroll run (unlocks the attendance period) |
+
+`employee.import` (already defined) now backs the bulk CSV import endpoint. All
+checks remain database-driven on the `api` guard — no hardcoded role logic.

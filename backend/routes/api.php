@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DepartmentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
+use App\Http\Controllers\Api\V1\EmployeeDocumentController;
 use App\Http\Controllers\Api\V1\LeaveController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PayrollController;
@@ -76,9 +77,17 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
     // --- Core HR (Employees, Departments, Designations) ---
     Route::get('employees', [EmployeeController::class, 'index'])->middleware('permission:employee.profile.view');
     Route::post('employees', [EmployeeController::class, 'store'])->middleware('permission:employee.profile.create');
+    Route::post('employees/import', [EmployeeController::class, 'import'])->middleware('permission:employee.import');
+    Route::get('employees/import/template', [EmployeeController::class, 'importTemplate'])->middleware('permission:employee.import');
     Route::get('employees/{employee}', [EmployeeController::class, 'show'])->middleware('permission:employee.profile.view');
     Route::match(['put', 'patch'], 'employees/{employee}', [EmployeeController::class, 'update'])->middleware('permission:employee.profile.update');
     Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->middleware('permission:employee.profile.delete');
+
+    // --- Employee document vault (req #5) ---
+    Route::get('employees/{employee}/documents', [EmployeeDocumentController::class, 'index'])->middleware('permission:employee.document.view');
+    Route::post('employees/{employee}/documents', [EmployeeDocumentController::class, 'store'])->middleware('permission:employee.document.manage');
+    Route::get('employee-documents/{document}/download', [EmployeeDocumentController::class, 'download'])->middleware('permission:employee.document.view');
+    Route::delete('employee-documents/{document}', [EmployeeDocumentController::class, 'destroy'])->middleware('permission:employee.document.manage');
 
     Route::get('departments', [DepartmentController::class, 'index'])->middleware('permission:employee.profile.view');
     Route::post('departments', [DepartmentController::class, 'store'])->middleware('permission:company.settings.manage');
@@ -91,8 +100,16 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
     Route::middleware('module:attendance')->prefix('attendance')->group(function (): void {
         Route::post('check-in', [AttendanceController::class, 'checkIn'])->middleware('permission:attendance.self');
         Route::post('check-out', [AttendanceController::class, 'checkOut'])->middleware('permission:attendance.self');
+        Route::post('break-in', [AttendanceController::class, 'breakIn'])->middleware('permission:attendance.self');
+        Route::post('break-out', [AttendanceController::class, 'breakOut'])->middleware('permission:attendance.self');
         Route::post('mark', [AttendanceController::class, 'mark'])->middleware('permission:attendance.mark');
         Route::get('/', [AttendanceController::class, 'index'])->middleware('permission:attendance.view');
+
+        // Correction request workflow (req #6)
+        Route::get('corrections', [AttendanceController::class, 'corrections'])->middleware('permission:attendance.view');
+        Route::post('corrections', [AttendanceController::class, 'storeCorrection'])->middleware('permission:attendance.correction.request');
+        Route::post('corrections/{correction}/approve', [AttendanceController::class, 'approveCorrection'])->middleware('permission:attendance.correction.approve');
+        Route::post('corrections/{correction}/reject', [AttendanceController::class, 'rejectCorrection'])->middleware('permission:attendance.correction.approve');
     });
 
     // --- Leave (module-gated) ---
@@ -116,6 +133,9 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
         Route::post('runs', [PayrollController::class, 'createRun'])->middleware('permission:payroll.run.execute');
         Route::post('runs/{run}/process', [PayrollController::class, 'process'])->middleware('permission:payroll.run.execute');
         Route::post('runs/{run}/publish', [PayrollController::class, 'publish'])->middleware('permission:payroll.run.execute');
+        Route::post('runs/{run}/reopen', [PayrollController::class, 'reopen'])->middleware('permission:payroll.run.reopen');
+        Route::get('runs/{run}/adjustments', [PayrollController::class, 'adjustments'])->middleware('permission:payroll.run.execute');
+        Route::post('runs/{run}/adjustments', [PayrollController::class, 'storeAdjustment'])->middleware('permission:payroll.run.execute');
         Route::get('runs/{run}/payslips', [PayrollController::class, 'payslips'])->middleware('permission:payroll.payslip.view.any');
     });
     Route::get('payslips/{payslip}', [PayrollController::class, 'showPayslip'])
