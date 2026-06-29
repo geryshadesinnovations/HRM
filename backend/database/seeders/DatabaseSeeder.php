@@ -16,5 +16,11 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SuperAdminSeeder::class,
         ]);
+
+        // Demo tenant with per-role logins — skipped during automated tests so
+        // it never interferes with assertions.
+        if (! app()->environment('testing')) {
+            $this->call(DemoSeeder::class);
+        }
     }
 }

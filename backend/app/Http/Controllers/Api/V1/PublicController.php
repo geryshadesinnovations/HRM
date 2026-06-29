@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domains\Billing\Services\CouponService;
 use App\Domains\Platform\Models\ContactInquiry;
 use App\Domains\Subscription\Models\Plan;
 use App\Http\Controllers\Controller;
@@ -55,5 +56,23 @@ final class PublicController extends Controller
         ContactInquiry::create(array_merge($data, ['status' => 'new']));
 
         return ApiResponse::success(['message' => 'Thanks! We will get back to you shortly.'], status: 201);
+    }
+
+    /** Validate a coupon code against a plan and preview the discount. */
+    public function validateCoupon(Request $request, CouponService $coupons): JsonResponse
+    {
+        $data = $request->validate([
+            'code' => ['required', 'string', 'max:40'],
+            'plan_code' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        $coupon = $coupons->validate($data['code'], $data['plan_code'] ?? null);
+
+        return ApiResponse::success([
+            'code' => $coupon->code,
+            'type' => $coupon->type,
+            'value' => $coupon->value,
+            'description' => $coupon->description,
+        ]);
     }
 }

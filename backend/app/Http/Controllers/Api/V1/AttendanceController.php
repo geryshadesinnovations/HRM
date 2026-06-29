@@ -60,20 +60,37 @@ final class AttendanceController extends Controller
         return ApiResponse::success($record, status: 201);
     }
 
-    /** Employee self check-in. */
+    /** Employee self check-in (optionally GPS-tagged). */
     public function checkIn(Request $request): JsonResponse
     {
-        $record = $this->service->checkIn($this->currentEmployee($request));
-
-        return ApiResponse::success($record, status: 201);
-    }
-
-    /** Employee self check-out. */
-    public function checkOut(Request $request): JsonResponse
-    {
-        $record = $this->service->checkOut($this->currentEmployee($request));
+        $record = $this->service->checkIn($this->currentEmployee($request), null, $this->geo($request));
 
         return ApiResponse::success($record);
+    }
+
+    /** Employee self check-out (optionally GPS-tagged). */
+    public function checkOut(Request $request): JsonResponse
+    {
+        $record = $this->service->checkOut($this->currentEmployee($request), null, $this->geo($request));
+
+        return ApiResponse::success($record);
+    }
+
+    /**
+     * @return array{lat?:float|null,lng?:float|null,method?:string}
+     */
+    private function geo(Request $request): array
+    {
+        $data = $request->validate([
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
+        ]);
+
+        return [
+            'lat' => isset($data['lat']) ? (float) $data['lat'] : null,
+            'lng' => isset($data['lng']) ? (float) $data['lng'] : null,
+            'method' => isset($data['lat']) ? 'gps' : 'web',
+        ];
     }
 
     /** Employee starts a break. */

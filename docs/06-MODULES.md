@@ -118,3 +118,35 @@ and rejects its APIs with `403 MODULE_NOT_LICENSED`, while **all data is preserv
 - **Lock & reopen:** publishing locks the run and the attendance period;
   reopening (permission `payroll.run.reopen`) returns the run to `completed`,
   unlocks attendance, and writes a reopen audit line.
+
+
+
+---
+
+## Attendance capture: GPS & biometric (Phase 7)
+
+- **GPS** — self check-in/out accept optional `lat`/`lng`; punches are stored with
+  a `capture_method` of `gps` and the coordinates. Gated by the `attendance.gps`
+  feature.
+- **Biometric / kiosk** — devices are registered per tenant (`biometric_devices`,
+  feature `attendance.biometric`, permission `attendance.device.manage`); the
+  device token is shown once. Devices push punches to the public endpoint
+  `POST /attendance/biometric/punch` with an `X-Device-Token` header (no user
+  session); the device's tenant + feature are resolved server-side and the punch
+  toggles check-in/out for the day.
+
+## Payroll: statutory PF / ESI / TDS (Phase 7)
+
+Per-company config lives in `payroll_settings` (GET/PUT `/payroll/settings`,
+permission `payroll.structure.manage`) and is applied during `process` when the
+plan includes the `payroll.statutory` feature:
+
+- **PF** — `pf_employee_rate`% (default 12%) of basic, capped at `pf_wage_ceiling`
+  (default ₹15,000).
+- **ESI** — `esi_employee_rate`% (default 0.75%) of gross when gross ≤
+  `esi_wage_ceiling` (default ₹21,000).
+- **TDS** — simplified annualised slab estimator (`new`/`old` regime, standard
+  deduction, 87A rebate, 4% cess), divided by 12.
+
+Statutory lines never duplicate a manually-defined deduction with the same code
+(PF/ESI/TDS). All money is minor units.

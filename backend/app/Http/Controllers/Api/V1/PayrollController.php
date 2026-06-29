@@ -10,6 +10,7 @@ use App\Domains\Payroll\Models\Payslip;
 use App\Domains\Payroll\Models\SalaryComponent;
 use App\Domains\Payroll\Models\SalaryStructure;
 use App\Domains\Payroll\Services\PayrollService;
+use App\Domains\Payroll\Services\StatutoryCalculator;
 use App\Http\Controllers\Controller;
 use App\Platform\Http\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,37 @@ use Illuminate\Validation\Rule;
 final class PayrollController extends Controller
 {
     public function __construct(private readonly PayrollService $service) {}
+
+    // --- Statutory settings (PF / ESI / TDS) ---
+
+    /** Read the tenant's statutory configuration. */
+    public function settings(StatutoryCalculator $calc): JsonResponse
+    {
+        return ApiResponse::success($calc->settings());
+    }
+
+    /** Update the tenant's statutory configuration. */
+    public function updateSettings(Request $request, StatutoryCalculator $calc): JsonResponse
+    {
+        $data = $request->validate([
+            'pf_enabled' => ['boolean'],
+            'pf_employee_rate' => ['numeric', 'between:0,100'],
+            'pf_employer_rate' => ['numeric', 'between:0,100'],
+            'pf_wage_ceiling' => ['integer', 'min:0'],
+            'esi_enabled' => ['boolean'],
+            'esi_employee_rate' => ['numeric', 'between:0,100'],
+            'esi_employer_rate' => ['numeric', 'between:0,100'],
+            'esi_wage_ceiling' => ['integer', 'min:0'],
+            'tds_enabled' => ['boolean'],
+            'tds_regime' => [Rule::in(['new', 'old'])],
+            'tds_standard_deduction' => ['integer', 'min:0'],
+        ]);
+
+        $settings = $calc->settings();
+        $settings->update($data);
+
+        return ApiResponse::success($settings->refresh());
+    }
 
     // --- Salary components ---
 

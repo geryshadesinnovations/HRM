@@ -76,7 +76,14 @@ build and a PR. Earlier phases unblock later ones.
 - [x] Company registration profile fields (phone, GST, industry, headcount, address)
 - [x] Light/Dark theme switcher
 - [x] Deep employee records + document vault (req #5)
-- [x] Attendance breaks + correction request workflow (req #6); GPS/biometric still pending
+- [x] Attendance breaks + correction request workflow (req #6)
+- [x] GPS-tagged + biometric device attendance capture (feature-gated) (req #6)
 - [x] Bulk employee CSV import (seat-gated, per-row results)
 - [x] Payroll two-mode (payroll-only / attendance+payroll) + period lock + reopen + adjustment audit (req #7)
-- [ ] Command palette, global search, coupons/discounts/taxes, statutory PF/ESI/tax engine, document versioned diff UI, full doc regeneration
+- [x] Statutory PF / ESI / income-tax (TDS) engine — per-company configurable
+- [x] Coupons / discount engine + dunning + auto-renew (`billing:cycle` command)
+- [x] Command palette (⌘K) + tenant-scoped global search
+- [x] Marketing site: Why-us, plan comparison, testimonials, About/Privacy/Terms
+- [x] Demo seeder with per-role test logins
+- [x] Self-contained HTML documentation site (`docs/site/index.html`, 12 manuals + credentials)
+- [ ] Remaining: invoice/payslip PDF generation, MFA, audit-log UI, observability stack, onboarding wizard, scheduled report delivery

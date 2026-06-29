@@ -154,3 +154,22 @@ contact, employment, salary/statutory). Sensitive identifiers are masked on read
 | `POST` | `/payroll/runs/{run}/reopen` | `payroll.run.reopen` |
 | `GET` | `/payroll/runs/{run}/adjustments` | `payroll.run.execute` |
 | `POST` | `/payroll/runs/{run}/adjustments` | `payroll.run.execute` |
+
+
+
+---
+
+## Endpoints added (Phase 7 — GPS/biometric, statutory, coupons, search)
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `POST` | `/attendance/check-in` / `check-out` | tenant + `attendance.self` | Accept optional `lat`,`lng` (GPS, feature `attendance.gps`) |
+| `GET/POST/DELETE` | `/attendance/devices` | tenant + `attendance.device.manage` + feature `attendance.biometric` | Register/list/revoke devices; POST returns the token once |
+| `POST` | `/attendance/biometric/punch` | device token (`X-Device-Token`) | Public ingestion; `{ employee_code, at? }` |
+| `GET/PUT` | `/payroll/settings` | tenant + `payroll.structure.manage` | Statutory PF/ESI/TDS config |
+| `GET` | `/search?q=` | tenant | Command-palette global search |
+| `POST` | `/public/coupon` | public | Validate/preview a coupon |
+| `GET/POST/PATCH/DELETE` | `/admin/coupons` | superadmin | Coupon CRUD |
+| `POST` | `/subscription/upgrade`, `/subscription/reactivate` | tenant + `company.subscription.manage` | Accept optional `coupon_code` |
+
+Console: `php artisan billing:cycle` (auto-renew + dunning, run daily).

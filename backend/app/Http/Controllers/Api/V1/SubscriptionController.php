@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domains\Billing\Models\Coupon;
 use App\Domains\Billing\Models\Invoice;
+use App\Domains\Billing\Services\CouponService;
 use App\Domains\Billing\Services\GatewayManager;
 use App\Domains\Billing\Services\InvoiceService;
 use App\Domains\Subscription\Models\Plan;
@@ -30,6 +32,7 @@ final class SubscriptionController extends Controller
         private readonly SubscriptionService $service,
         private readonly InvoiceService $invoices,
         private readonly TenantContext $tenant,
+        private readonly CouponService $coupons,
     ) {}
 
     public function show(SubscriptionEngine $engine): JsonResponse
@@ -62,7 +65,8 @@ final class SubscriptionController extends Controller
     {
         $plan = $this->resolvePlan($request);
         $subscription = $this->service->upgrade($this->currentSubscription(), $plan);
-        $invoice = $this->invoices->createForSubscription($subscription);
+        $coupon = $this->resolveCoupon($request, $plan, (int) $subscription->company_id);
+        $invoice = $this->invoices->createForSubscription($subscription, $coupon);
 
         return ApiResponse::success(['subscription' => $subscription->only(['uuid', 'status', 'seats']), 'invoice' => $invoice]);
     }
@@ -91,7 +95,7 @@ final class SubscriptionController extends Controller
     public function invoices(): JsonResponse
     {
         return ApiResponse::success(
-            Invoice::orderByDesc('id')->get(['uuid', 'number', 'status', 'subtotal', 'tax_total', 'total', 'currency', 'issued_at', 'due_at', 'paid_at']),
+            Invoice::orderByDesc('id')->get(['uuid', 'number', 'status', 'subtotal', 'tax_total', 'discount_total', 'total', 'currency', 'issued_at', 'due_at', 'paid_at']),
         );
     }
 
@@ -135,5 +139,16 @@ final class SubscriptionController extends Controller
         $data = $request->validate(['plan_code' => ['required', 'string', 'exists:plans,code']]);
 
         return $this->tenant->bypass(fn () => Plan::where('code', $data['plan_code'])->where('is_active', true)->firstOrFail());
+    }
+
+    /** Resolve an optional `coupon_code` from the request, validated for the plan. */
+    private function resolveCoupon(Request $request, Plan $plan, int $companyId): ?Coupon
+    {
+        $code = $request->input('coupon_code');
+        if (! is_string($code) || $code === '') {
+            return null;
+        }
+
+        return $this->tenant->bypass(fn () => $this->coupons->validate($code, $plan->code, $companyId));
     }
 }

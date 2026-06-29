@@ -27,3 +27,14 @@ changes, update these documents first.
 - **Engineers** start at 01 (architecture) and 02 (schema), then the module they own.
 - **Product/founders** start at 00 (overview) and 03/04 (subscription + billing).
 - **DevOps** start at 11 (deployment) and 08 (security).
+
+
+
+---
+
+## Human-readable HTML manuals
+
+A self-contained documentation site (12 manuals + **test credentials**) lives at
+[`site/index.html`](site/index.html). It is also copied into the frontend and
+served at `/docs/index.html` when the app is running. Open it in any browser — no
+build step required.

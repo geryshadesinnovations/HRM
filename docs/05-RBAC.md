@@ -80,3 +80,13 @@ $this->authorize('approve', $leaveRequest); // LeaveRequestPolicy checks manager
 
 `employee.import` (already defined) now backs the bulk CSV import endpoint. All
 checks remain database-driven on the `api` guard — no hardcoded role logic.
+
+
+
+---
+
+## Added permission (Phase 7 — devices)
+
+| Permission | Granted to (built-in roles) | Purpose |
+|------------|-----------------------------|---------|
+| `attendance.device.manage` | Company Admin, HR Manager | Register / revoke biometric (kiosk) attendance devices |

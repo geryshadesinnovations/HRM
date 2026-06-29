@@ -26,7 +26,9 @@ class AttendanceRecord extends Model
         'company_id', 'employee_id', 'shift_id', 'work_date', 'status',
         'check_in', 'check_out', 'break_in', 'break_out', 'break_minutes',
         'worked_minutes', 'overtime_minutes', 'late_minutes', 'early_minutes',
-        'source', 'locked', 'notes',
+        'source', 'capture_method', 'biometric_device_id',
+        'check_in_lat', 'check_in_lng', 'check_out_lat', 'check_out_lng',
+        'locked', 'notes',
     ];
 
     protected $casts = [
@@ -39,6 +41,10 @@ class AttendanceRecord extends Model
         'overtime_minutes' => 'integer',
         'late_minutes' => 'integer',
         'early_minutes' => 'integer',
+        'check_in_lat' => 'float',
+        'check_in_lng' => 'float',
+        'check_out_lat' => 'float',
+        'check_out_lng' => 'float',
         'locked' => 'boolean',
     ];
 

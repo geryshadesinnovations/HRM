@@ -30,7 +30,7 @@ class RolePermissionSeeder extends Seeder
         'employee.document.view', 'employee.document.manage',
         // Attendance
         'attendance.mark', 'attendance.self', 'attendance.view', 'attendance.report.view',
-        'attendance.correction.request', 'attendance.correction.approve',
+        'attendance.correction.request', 'attendance.correction.approve', 'attendance.device.manage',
         // Leave
         'leave.request.create', 'leave.request.approve', 'leave.type.manage', 'leave.view',
         // Payroll
@@ -47,7 +47,7 @@ class RolePermissionSeeder extends Seeder
             'employee.profile.delete', 'employee.import',
             'employee.document.view', 'employee.document.manage',
             'attendance.mark', 'attendance.self', 'attendance.view', 'attendance.report.view',
-            'attendance.correction.request', 'attendance.correction.approve',
+            'attendance.correction.request', 'attendance.correction.approve', 'attendance.device.manage',
             'leave.request.create', 'leave.request.approve', 'leave.type.manage', 'leave.view',
             'payroll.structure.manage', 'payroll.run.execute', 'payroll.run.reopen',
             'payroll.payslip.view.any', 'payroll.payslip.view.own', 'payroll.report.view',
@@ -56,7 +56,7 @@ class RolePermissionSeeder extends Seeder
             'employee.profile.view', 'employee.profile.create', 'employee.profile.update', 'employee.import',
             'employee.document.view', 'employee.document.manage',
             'attendance.mark', 'attendance.self', 'attendance.view', 'attendance.report.view',
-            'attendance.correction.request', 'attendance.correction.approve',
+            'attendance.correction.request', 'attendance.correction.approve', 'attendance.device.manage',
             'leave.request.create', 'leave.request.approve', 'leave.type.manage', 'leave.view',
             'payroll.structure.manage', 'payroll.run.execute', 'payroll.run.reopen',
             'payroll.payslip.view.any', 'payroll.payslip.view.own', 'payroll.report.view',

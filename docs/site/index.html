@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HRMS SaaS — Documentation</title>
+<style>
+  :root{--brand:#2563eb;--brand2:#059669;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f8fafc;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .layout{display:flex;min-height:100vh}
+  aside{width:280px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;padding:6px 8px 16px}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+  nav a{display:block;padding:8px 10px;border-radius:8px;color:#334155;font-size:14px;font-weight:500;cursor:pointer}
+  nav a:hover{background:#f1f5f9;text-decoration:none}
+  nav a.active{background:#eff6ff;color:var(--brand)}
+  nav .group{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;font-weight:700;padding:14px 10px 4px}
+  main{flex:1;min-width:0;padding:40px 48px;max-width:920px}
+  section.doc{display:none}
+  section.doc.active{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h1{font-size:30px;margin:0 0 4px}
+  h2{font-size:21px;margin:30px 0 8px;padding-top:8px;border-top:1px solid var(--line)}
+  h3{font-size:16px;margin:20px 0 6px}
+  p,li{color:#334155}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:5px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13px}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f8fafc;font-weight:600}
+  .tag{display:inline-block;background:#eff6ff;color:var(--brand);font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px}
+  .callout{border:1px solid var(--line);border-left:4px solid var(--brand);background:#fff;border-radius:8px;padding:14px 16px;margin:16px 0}
+  .callout.warn{border-left-color:#f59e0b}
+  .callout.cred{border-left-color:var(--brand2);background:#ecfdf5}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:16px 0}
+  .pill{font-family:ui-monospace,monospace;background:#0f172a;color:#a5f3fc;padding:2px 6px;border-radius:5px;font-size:13px}
+  .muted{color:var(--muted)}
+  .search{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;margin-bottom:10px}
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:#94a3b8;font-size:13px}
+  @media(max-width:860px){aside{display:none}main{padding:24px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand"><span class="logo">HR</span> HRMS Docs</div>
+  <input class="search" id="navSearch" placeholder="Filter sections…" oninput="filterNav(this.value)" />
+  <nav id="nav">
+    <div class="group">Start here</div>
+    <a data-doc="credentials" class="active">🔑 Test Credentials</a>
+    <a data-doc="overview">📘 Business Overview</a>
+    <div class="group">User guides</div>
+    <a data-doc="user">📖 User Manual</a>
+    <a data-doc="superadmin">🛰️ Super Admin Guide</a>
+    <a data-doc="companyadmin">🏢 Company Admin Guide</a>
+    <a data-doc="employee">👤 Employee Guide</a>
+    <div class="group">Technical</div>
+    <a data-doc="technical">🧩 Technical Documentation</a>
+    <a data-doc="api">🔌 API Reference</a>
+    <a data-doc="database">🗄️ Database Schema</a>
+    <a data-doc="deployment">🚀 Deployment Guide</a>
+    <div class="group">Operations</div>
+    <a data-doc="maintenance">🛠️ Maintenance Guide</a>
+    <a data-doc="changeimpact">🔄 Change Impact Guide</a>
+    <a data-doc="troubleshooting">🩺 Troubleshooting</a>
+  </nav>
+</aside>
+<main id="main">
+
+
+<section class="doc active" id="doc-credentials">
+  <span class="tag">Start here</span>
+  <h1>Test Credentials</h1>
+  <p>After running <code>php artisan migrate:fresh --seed</code> (in any non-production environment) the platform is seeded with a Super Admin and a fully populated demo company. Use these to explore every role.</p>
+
+  <div class="callout cred">
+    <strong>All seeded accounts use the password:</strong> <span class="pill">password</span>
+    <p class="muted" style="margin:6px 0 0">Change every one of these before going to production.</p>
+  </div>
+
+  <h2>Platform owner (Super Admin)</h2>
+  <table>
+    <tr><th>Role</th><th>Email</th><th>Password</th><th>Lands on</th></tr>
+    <tr><td>Super Admin / Owner</td><td><span class="pill">superadmin@hrms.test</span></td><td><span class="pill">password</span></td><td>Owner dashboard <code>/admin</code></td></tr>
+  </table>
+
+  <h2>Demo company logins (Demo Company Pvt Ltd)</h2>
+  <table>
+    <tr><th>Role</th><th>Email</th><th>Password</th><th>Can do</th></tr>
+    <tr><td>Company Admin</td><td><span class="pill">admin@demo.test</span></td><td><span class="pill">password</span></td><td>Everything in the company workspace</td></tr>
+    <tr><td>HR Manager</td><td><span class="pill">hr@demo.test</span></td><td><span class="pill">password</span></td><td>Employees, attendance, leave, payroll</td></tr>
+    <tr><td>Manager</td><td><span class="pill">manager@demo.test</span></td><td><span class="pill">password</span></td><td>Approvals, team attendance, own payslips</td></tr>
+    <tr><td>Employee</td><td><span class="pill">employee@demo.test</span></td><td><span class="pill">password</span></td><td>Self check-in, leave, own payslips</td></tr>
+  </table>
+
+  <h2>Other demo data</h2>
+  <ul>
+    <li>Active <strong>Growth</strong> subscription (includes payroll, statutory PF/ESI/TDS, GPS attendance).</li>
+    <li>5 employees with salary structures, departments &amp; designations.</li>
+    <li>A working discount coupon: <span class="pill">WELCOME20</span> (20% off the first invoice).</li>
+  </ul>
+
+  <div class="callout warn">
+    <strong>Security note.</strong> The demo seeder only runs outside the <code>testing</code> environment. Never deploy to production with demo data or default passwords.
+  </div>
+</section>
+
+<section class="doc" id="doc-overview">
+  <span class="tag">Business</span>
+  <h1>Business Overview</h1>
+  <p>HRMS SaaS is a multi-tenant human-resource platform that lets a software vendor (the <em>platform owner</em>) sell HR software to many companies, each with isolated data, on subscription plans.</p>
+
+  <h2>Who uses it</h2>
+  <table>
+    <tr><th>Persona</th><th>Goal</th></tr>
+    <tr><td>Platform Owner (Super Admin)</td><td>Sell &amp; manage subscriptions, monitor revenue and platform health, manage companies, plans, coupons, and inquiries.</td></tr>
+    <tr><td>Company Admin / HR</td><td>Run day-to-day HR: employees, attendance, leave, payroll, and the company subscription.</td></tr>
+    <tr><td>Manager</td><td>Approve leave &amp; attendance corrections for their team.</td></tr>
+    <tr><td>Employee</td><td>Self check-in/out, request leave, download payslips, manage their profile &amp; documents.</td></tr>
+  </table>
+
+  <h2>The modules</h2>
+  <div class="grid">
+    <div class="callout"><strong>Employees</strong><p class="muted">Complete digital records, document vault, bulk CSV import.</p></div>
+    <div class="callout"><strong>Attendance</strong><p class="muted">Self / manual / GPS / biometric, breaks, corrections, period lock.</p></div>
+    <div class="callout"><strong>Leave</strong><p class="muted">Policies, balances, approval workflow.</p></div>
+    <div class="callout"><strong>Payroll</strong><p class="muted">Salary structures, statutory PF/ESI/TDS, two run modes, payslips.</p></div>
+    <div class="callout"><strong>Billing</strong><p class="muted">Plans, seats, GST invoices, coupons, dunning, Razorpay.</p></div>
+    <div class="callout"><strong>Owner console</strong><p class="muted">Analytics, companies, plans, coupons, inquiries, impersonation.</p></div>
+  </div>
+
+  <h2>How money flows</h2>
+  <p>A company signs up → starts a free trial → picks a plan (monthly/yearly) → optionally applies a coupon → pays via gateway → an invoice is issued with GST. Subscriptions auto-renew; failed payments enter a dunning cycle and, after repeated failures, the account moves to a grace window then suspension. Data is never deleted on suspension.</p>
+</section>
+
+
+<section class="doc" id="doc-user">
+  <span class="tag">User guide</span>
+  <h1>User Manual</h1>
+  <p>This manual covers the basics shared by everyone who logs in.</p>
+  <h2>Signing in</h2>
+  <ol>
+    <li>Go to the app and choose <strong>Sign in</strong>.</li>
+    <li>Enter your email and password (see <a data-jump="credentials">Test Credentials</a> for demo logins).</li>
+    <li>Super Admins land on the owner console; company users land on the dashboard.</li>
+  </ol>
+  <h2>Getting around</h2>
+  <ul>
+    <li><strong>Sidebar</strong> — switches between modules you have access to.</li>
+    <li><strong>Command palette</strong> — press <span class="pill">⌘K</span> / <span class="pill">Ctrl+K</span> (or the Search button) to jump to any page or find an employee instantly.</li>
+    <li><strong>Theme</strong> — toggle light/dark from the top bar.</li>
+    <li><strong>Notifications</strong> — the bell shows unread counts; payroll, leave, and billing events appear here.</li>
+  </ul>
+  <h2>What you can see</h2>
+  <p>Menus and buttons adapt to your role and your company&apos;s plan. If a module isn&apos;t in your plan, or you lack a permission, the related pages are hidden.</p>
+</section>
+
+<section class="doc" id="doc-superadmin">
+  <span class="tag">Owner</span>
+  <h1>Super Admin Guide</h1>
+  <p>Sign in as <span class="pill">superadmin@hrms.test</span> / <span class="pill">password</span> to reach the owner console at <code>/admin</code>.</p>
+  <h2>Owner dashboard</h2>
+  <p>Shows platform-wide analytics: total / active / trial / expired companies, MRR &amp; ARR, active subscriptions, employee growth, recent activity, and system health.</p>
+  <h2>Companies</h2>
+  <ul>
+    <li>View, search, and filter every company.</li>
+    <li>Suspend / activate, soft-delete, reset a company admin&apos;s password.</li>
+    <li><strong>Impersonate</strong> (secure login-as) to support a customer — actions are issued as that company.</li>
+    <li>Inspect subscription history, employee counts, and usage.</li>
+  </ul>
+  <h2>Plans &amp; pricing</h2>
+  <p>Create, edit, duplicate, enable/disable plans; set monthly/yearly pricing, included seats, per-seat price, trial days, and module access. <strong>Pricing changes appear instantly on the public landing page</strong> (it reads the same data via <code>GET /public/plans</code>).</p>
+  <h2>Coupons</h2>
+  <p>Create percent or fixed-amount coupons, restrict to a plan, cap redemptions, and set validity windows. Companies redeem them at checkout. Manage at <code>/admin/coupons</code>.</p>
+  <h2>Inquiries</h2>
+  <p>Contact-form submissions from the public site land in the Inquiries inbox with status tracking (new → contacted → closed).</p>
+</section>
+
+<section class="doc" id="doc-companyadmin">
+  <span class="tag">Company</span>
+  <h1>Company Admin Guide</h1>
+  <p>Sign in as <span class="pill">admin@demo.test</span> / <span class="pill">password</span>.</p>
+  <h2>Onboarding a team</h2>
+  <ol>
+    <li>Create departments &amp; designations.</li>
+    <li>Add employees one by one, or use <strong>Employees → Import CSV</strong> (download the template, fill, upload — you get a per-row result report).</li>
+    <li>Upload documents to each employee&apos;s <strong>Document vault</strong> (versioned, private).</li>
+  </ol>
+  <h2>Attendance</h2>
+  <ul>
+    <li>Choose how attendance is captured: HR marks it, employees self check-in/out, GPS-tagged punches, or biometric devices (plan-dependent).</li>
+    <li>Register biometric devices under <strong>Attendance → Devices</strong>; the device token is shown once.</li>
+    <li>Review and approve <strong>correction requests</strong>.</li>
+  </ul>
+  <h2>Payroll</h2>
+  <ol>
+    <li>Define salary components &amp; per-employee structures.</li>
+    <li>Set statutory rules in <strong>Payroll → Settings</strong> (PF/ESI/TDS toggles &amp; rates).</li>
+    <li>Create a run (mode: <em>payroll only</em> or <em>attendance + payroll</em>) → <strong>Process</strong> → review → <strong>Publish</strong>.</li>
+    <li>Publishing locks the attendance period; <strong>Reopen</strong> if you must correct it (audited).</li>
+    <li>Add bonuses/incentives/penalties as adjustments; re-process to apply.</li>
+  </ol>
+  <h2>Subscription &amp; billing</h2>
+  <p>Upgrade/downgrade plans, add seats, apply a coupon code (try <span class="pill">WELCOME20</span>), view GST invoices, and pay.</p>
+</section>
+
+<section class="doc" id="doc-employee">
+  <span class="tag">Employee</span>
+  <h1>Employee Guide</h1>
+  <p>Sign in as <span class="pill">employee@demo.test</span> / <span class="pill">password</span> (available when your plan includes self-attendance).</p>
+  <h2>Daily attendance</h2>
+  <ul>
+    <li><strong>Check in</strong> when you start, <strong>Check out</strong> when you leave.</li>
+    <li>Use <strong>Start break</strong> / <strong>End break</strong> — break time is excluded from worked hours.</li>
+    <li>If your company enabled GPS, your location is captured with the punch.</li>
+    <li>Made a mistake? Raise an <strong>attendance correction request</strong> for HR to approve.</li>
+  </ul>
+  <h2>Leave</h2>
+  <p>Check your balances, apply for leave, and track approval status.</p>
+  <h2>Payslips &amp; profile</h2>
+  <ul>
+    <li>Download your payslips once payroll is published.</li>
+    <li>Update permitted profile fields and upload allowed documents.</li>
+    <li>You can only ever see your own company&apos;s data.</li>
+  </ul>
+</section>
+
+
+<section class="doc" id="doc-technical">
+  <span class="tag">Technical</span>
+  <h1>Technical Documentation</h1>
+  <h2>Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th></tr>
+    <tr><td>Backend</td><td>Laravel 12 (PHP 8.2+), JWT auth, Spatie permissions</td></tr>
+    <tr><td>Frontend</td><td>Next.js (App Router, React, TypeScript, Tailwind)</td></tr>
+    <tr><td>Database</td><td>PostgreSQL (SQLite for tests)</td></tr>
+    <tr><td>Payments</td><td>Razorpay gateway (pluggable via a gateway manager)</td></tr>
+  </table>
+  <h2>Architecture</h2>
+  <ul>
+    <li><strong>Domain-driven</strong> backend under <code>app/Domains/*</code> (Attendance, Billing, Employee, Leave, Payroll, Subscription, Notification, Platform).</li>
+    <li><strong>Multi-tenancy</strong> via a <code>BelongsToTenant</code> trait + global scope; <code>TenantContext</code> resolves the active company and <em>fails closed</em> when unresolved.</li>
+    <li><strong>RBAC</strong> on the <code>api</code> guard — all access is database-driven permissions, no hardcoded role checks.</li>
+    <li><strong>Subscription entitlements</strong> gate modules (<code>module:</code> middleware) and features (<code>feature:</code> middleware).</li>
+    <li><strong>Standard envelope</strong>: success <code>{ data, meta }</code>, error <code>{ error: { code, message, details } }</code>.</li>
+  </ul>
+  <h2>Key conventions</h2>
+  <ul>
+    <li>Money is stored in <strong>minor units</strong> (paise) as integers.</li>
+    <li>Sensitive identifiers (PAN, Aadhaar, bank account) are <strong>encrypted at rest</strong> and masked in responses.</li>
+    <li>Background work: <code>php artisan subscriptions:sweep</code> (lifecycle) and <code>php artisan billing:cycle</code> (auto-renew + dunning) — schedule both daily.</li>
+  </ul>
+</section>
+
+<section class="doc" id="doc-api">
+  <span class="tag">Technical</span>
+  <h1>API Reference</h1>
+  <p>Base path <code>/api/v1</code>. Authenticate with <code>Authorization: Bearer &lt;jwt&gt;</code>. See <code>docs/07-API.md</code> for the exhaustive catalogue.</p>
+  <h2>Auth &amp; public</h2>
+  <pre><code>POST /auth/register-company
+POST /auth/login
+POST /auth/refresh
+GET  /public/plans            # dynamic pricing
+POST /public/contact          # contact form
+POST /public/coupon           # validate a coupon
+POST /webhooks/{gateway}      # signed payment webhooks
+POST /attendance/biometric/punch   # X-Device-Token header</code></pre>
+  <h2>Company workspace (auth + tenant)</h2>
+  <pre><code>GET  /search?q=...                       # command palette
+GET/POST/PATCH/DELETE /employees...
+POST /employees/import                   # bulk CSV
+GET  /employees/{e}/documents            # document vault
+POST /attendance/check-in|check-out|break-in|break-out
+POST /attendance/corrections             # + /{id}/approve|reject
+GET/POST/DELETE /attendance/devices      # biometric (feature-gated)
+GET/PUT /payroll/settings                # statutory PF/ESI/TDS
+POST /payroll/runs  /{run}/process|publish|reopen
+POST /payroll/runs/{run}/adjustments
+POST /subscription/upgrade               # accepts coupon_code
+GET  /invoices</code></pre>
+  <h2>Owner console (auth + superadmin)</h2>
+  <pre><code>GET  /admin/dashboard
+GET  /admin/companies  /{c}/suspend|activate|impersonate
+CRUD /admin/plans
+CRUD /admin/coupons
+GET  /admin/contact-inquiries</code></pre>
+</section>
+
+<section class="doc" id="doc-database">
+  <span class="tag">Technical</span>
+  <h1>Database Schema</h1>
+  <p>Every tenant-owned table carries <code>company_id</code>. Full details in <code>docs/02-DATABASE.md</code>.</p>
+  <h2>Core tables</h2>
+  <table>
+    <tr><th>Table</th><th>Purpose</th></tr>
+    <tr><td>companies, users</td><td>Tenants and login accounts (users carry <code>company_id</code> + <code>is_super_admin</code>).</td></tr>
+    <tr><td>plans, modules, features, subscriptions</td><td>Catalogue + a company&apos;s live plan instance &amp; entitlements.</td></tr>
+    <tr><td>employees, employee_documents</td><td>Deep records (encrypted PAN/Aadhaar/bank) + versioned document vault.</td></tr>
+    <tr><td>attendance_records, attendance_correction_requests, biometric_devices</td><td>Punches (geo + capture method), correction workflow, devices.</td></tr>
+    <tr><td>leave_types, leave_requests, leave_balances</td><td>Leave policy + workflow.</td></tr>
+    <tr><td>payroll_runs, payslips, salary_structures, payroll_settings, payroll_adjustments</td><td>Runs (mode + lock), payslips, statutory config, audit adjustments.</td></tr>
+    <tr><td>invoices, payments, coupons, coupon_redemptions</td><td>GST invoices (discount + dunning columns), payments, discounts.</td></tr>
+  </table>
+  <h2>Conventions</h2>
+  <ul>
+    <li>UUID public keys (<code>uuid</code>) on most resources; integer PKs internally.</li>
+    <li>Soft deletes where history matters (employees, documents, plans, coupons).</li>
+    <li>Money columns are <code>bigInteger</code> minor units.</li>
+  </ul>
+</section>
+
+
+<section class="doc" id="doc-deployment">
+  <span class="tag">Operations</span>
+  <h1>Deployment Guide</h1>
+  <h2>Local development</h2>
+  <pre><code># Backend
+cd backend
+composer install
+cp .env.example .env && php artisan key:generate
+# set DB + JWT_SECRET in .env, then:
+php artisan migrate:fresh --seed     # seeds Super Admin + demo company
+php artisan serve
+
+# Frontend
+cd ../frontend
+npm install
+# set NEXT_PUBLIC_API_URL=http://localhost:8000
+npm run dev</code></pre>
+  <div class="callout">After seeding, log in with any account from <a data-jump="credentials">Test Credentials</a>.</div>
+  <h2>Production</h2>
+  <ol>
+    <li>Provision PostgreSQL; set a strong <code>JWT_SECRET</code> and <code>APP_KEY</code>; <code>APP_ENV=production</code>.</li>
+    <li><code>composer install --no-dev --optimize-autoloader</code>, then <code>php artisan migrate --force</code> (do <strong>not</strong> seed demo data).</li>
+    <li>Configure a private storage disk for the document vault and the Razorpay keys.</li>
+    <li>Build the frontend: <code>npm run build</code> and serve behind your host/CDN; point <code>NEXT_PUBLIC_API_URL</code> at the API.</li>
+    <li>Schedule the daily workers (cron / Laravel scheduler): <code>subscriptions:sweep</code> and <code>billing:cycle</code>.</li>
+  </ol>
+</section>
+
+<section class="doc" id="doc-maintenance">
+  <span class="tag">Operations</span>
+  <h1>Maintenance Guide</h1>
+  <h2>Scheduled jobs</h2>
+  <table>
+    <tr><th>Command</th><th>Cadence</th><th>Does</th></tr>
+    <tr><td><code>php artisan subscriptions:sweep</code></td><td>Daily</td><td>Trial→active, active→grace→expired transitions by date.</td></tr>
+    <tr><td><code>php artisan billing:cycle</code></td><td>Daily</td><td>Auto-renews due subscriptions; runs dunning on overdue invoices (3 retries → uncollectible + grace).</td></tr>
+  </table>
+  <h2>Routine tasks</h2>
+  <ul>
+    <li>Back up the database and the document-vault disk regularly.</li>
+    <li>Rotate <code>JWT_SECRET</code> and gateway keys per your security policy.</li>
+    <li>Apply dependency updates and re-run the test suite before deploying.</li>
+    <li>Monitor failed payments and the owner dashboard&apos;s system-health panel.</li>
+  </ul>
+  <h2>Quality gates</h2>
+  <pre><code>cd backend && ./vendor/bin/pint --test && ./vendor/bin/phpunit
+cd frontend && npx tsc --noEmit && npm run build</code></pre>
+</section>
+
+<section class="doc" id="doc-changeimpact">
+  <span class="tag">Operations</span>
+  <h1>Change Impact Guide</h1>
+  <p>Where to make common changes and what they ripple into.</p>
+  <table>
+    <tr><th>Change</th><th>Where</th><th>Impact</th></tr>
+    <tr><td>Plan pricing / modules</td><td>Owner → Plans</td><td>Updates landing-page pricing instantly; affects new subscriptions &amp; invoices.</td></tr>
+    <tr><td>Statutory rates (PF/ESI/TDS)</td><td>Payroll → Settings (per company)</td><td>Applies on the next payroll <em>process</em>.</td></tr>
+    <tr><td>New permission</td><td><code>RolePermissionSeeder</code> + route middleware</td><td>Re-seed roles; affects who can call the endpoint.</td></tr>
+    <tr><td>New module/feature</td><td><code>ModuleSeeder</code> + plan sync + <code>module:</code>/<code>feature:</code> gates</td><td>Gates pages &amp; endpoints by entitlement.</td></tr>
+    <tr><td>Schema change</td><td>New migration (additive) + model fillable/casts</td><td>Run <code>migrate</code>; update resources &amp; docs.</td></tr>
+  </table>
+  <div class="callout warn">Always add migrations additively and keep money in minor units. Re-run Pint + tests after any change.</div>
+</section>
+
+<section class="doc" id="doc-troubleshooting">
+  <span class="tag">Operations</span>
+  <h1>Troubleshooting</h1>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+    <tr><td>401 on every request</td><td>Missing/expired JWT</td><td>Re-login; the client auto-refreshes once, then clears tokens.</td></tr>
+    <tr><td>403 FEATURE_NOT_AVAILABLE</td><td>Plan doesn&apos;t include the feature (e.g. biometric)</td><td>Upgrade the plan or enable the feature on the plan.</td></tr>
+    <tr><td>403 MODULE_NOT_LICENSED</td><td>Module not in the subscription</td><td>Add the module/plan; check entitlements via <code>GET /me/entitlements</code>.</td></tr>
+    <tr><td>SEAT_LIMIT_REACHED</td><td>Active employees exceed plan seats</td><td>Add seats or deactivate employees.</td></tr>
+    <tr><td>Attendance edit rejected</td><td>Period locked by a published payroll run</td><td>Reopen the run (needs <code>payroll.run.reopen</code>).</td></tr>
+    <tr><td>Statutory not deducted</td><td>Plan lacks <code>payroll.statutory</code> or toggles off</td><td>Enable in Payroll → Settings; ensure the plan includes it.</td></tr>
+    <tr><td>Empty data / “fails closed”</td><td>No tenant resolved on a tenant-scoped query</td><td>Ensure requests carry auth + tenant; in jobs use the tenant context.</td></tr>
+    <tr><td>Biometric punch 401</td><td>Bad/revoked device token</td><td>Re-register the device; send the token in <code>X-Device-Token</code>.</td></tr>
+  </table>
+</section>
+
+<footer id="footerbar">
+  HRMS SaaS documentation · generated for the platform. For source-of-truth detail see the Markdown files in <code>docs/</code>.
+</footer>
+</main>
+</div>
+<script>
+  const nav = document.getElementById('nav');
+  const main = document.getElementById('main');
+  function show(id){
+    document.querySelectorAll('section.doc').forEach(s=>s.classList.toggle('active', s.id==='doc-'+id));
+    document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active', a.dataset.doc===id));
+    main.scrollTo?.(0,0); window.scrollTo(0,0);
+    if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+  }
+  nav.addEventListener('click', e=>{ const a=e.target.closest('a[data-doc]'); if(a){ e.preventDefault(); show(a.dataset.doc); }});
+  // in-content jump links
+  main.addEventListener('click', e=>{ const j=e.target.closest('[data-jump]'); if(j){ e.preventDefault(); show(j.dataset.jump); }});
+  function filterNav(q){
+    q=q.toLowerCase();
+    document.querySelectorAll('#nav a[data-doc]').forEach(a=>{ a.style.display = a.textContent.toLowerCase().includes(q)?'block':'none'; });
+  }
+  // open from hash on load
+  const initial=(location.hash||'#credentials').slice(1);
+  if(document.getElementById('doc-'+initial)) show(initial);
+</script>
+</body>
+</html>

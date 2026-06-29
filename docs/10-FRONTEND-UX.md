@@ -59,3 +59,20 @@ frontend/src/app/
 
 - Server Components for static/heavy data; Client Components only where interactive.
 - Code-split per route group; prefetch on hover; image optimization; bundle budgets.
+
+
+
+---
+
+## Command palette, search & marketing site (Phase 7)
+
+- **Command palette** (`components/CommandPalette.tsx`, mounted in `Shell`) opens
+  with ⌘K / Ctrl+K or the header Search button. It blends local navigation with
+  remote tenant-scoped results from `GET /search?q=` (employees, departments),
+  with full keyboard navigation (↑/↓/↵/Esc).
+- **Marketing site** — the landing page adds a Why-us section, a plan comparison
+  table, and testimonials. New static pages `/about`, `/privacy`, `/terms` share
+  `components/MarketingPage.tsx` chrome and are linked from the footer.
+- **Documentation** — a self-contained HTML manual set lives at
+  `docs/site/index.html` and is served by the app at `/docs/index.html` (copied to
+  `frontend/public/docs/`). It includes the test credentials.

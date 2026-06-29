@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V1\Admin\AdminCompanyController;
 use App\Http\Controllers\Api\V1\Admin\AdminContactController;
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Api\V1\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BiometricDeviceController;
 use App\Http\Controllers\Api\V1\DepartmentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\EmployeeDocumentController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PayrollController;
 use App\Http\Controllers\Api\V1\PublicController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\WebhookController;
 use Illuminate\Support\Facades\Route;
@@ -36,9 +39,14 @@ Route::prefix('auth')->group(function (): void {
 // Public, signature-verified gateway webhooks (no auth / no tenant).
 Route::post('webhooks/{gateway}', [WebhookController::class, 'handle']);
 
+// Public biometric/kiosk punch ingestion — authenticated by the X-Device-Token
+// header (no user session). The device's tenant + feature are resolved inside.
+Route::post('attendance/biometric/punch', [BiometricDeviceController::class, 'punch']);
+
 // Public marketing site endpoints (no auth): dynamic pricing + contact form.
 Route::get('public/plans', [PublicController::class, 'plans']);
 Route::post('public/contact', [PublicController::class, 'contact']);
+Route::post('public/coupon', [PublicController::class, 'validateCoupon']);
 
 // --- Super Admin platform console (no tenant scope) ---
 Route::middleware(['auth:api', 'superadmin'])->prefix('admin')->group(function (): void {
@@ -61,12 +69,21 @@ Route::middleware(['auth:api', 'superadmin'])->prefix('admin')->group(function (
 
     Route::get('contact-inquiries', [AdminContactController::class, 'index']);
     Route::match(['put', 'patch'], 'contact-inquiries/{inquiry}', [AdminContactController::class, 'update']);
+
+    // Coupons / discounts (req #3)
+    Route::get('coupons', [AdminCouponController::class, 'index']);
+    Route::post('coupons', [AdminCouponController::class, 'store']);
+    Route::match(['put', 'patch'], 'coupons/{coupon}', [AdminCouponController::class, 'update']);
+    Route::delete('coupons/{coupon}', [AdminCouponController::class, 'destroy']);
 });
 
 Route::middleware(['auth:api', 'tenant'])->group(function (): void {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
     Route::get('me/entitlements', [AuthController::class, 'entitlements']);
+
+    // --- Global search (powers the command palette) ---
+    Route::get('search', [SearchController::class, 'index']);
 
     // --- Notifications (per-user, all roles) ---
     Route::get('notifications', [NotificationController::class, 'index']);
@@ -110,6 +127,13 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
         Route::post('corrections', [AttendanceController::class, 'storeCorrection'])->middleware('permission:attendance.correction.request');
         Route::post('corrections/{correction}/approve', [AttendanceController::class, 'approveCorrection'])->middleware('permission:attendance.correction.approve');
         Route::post('corrections/{correction}/reject', [AttendanceController::class, 'rejectCorrection'])->middleware('permission:attendance.correction.approve');
+
+        // Biometric/kiosk device management (feature-gated, req #6)
+        Route::middleware('feature:attendance.biometric')->group(function (): void {
+            Route::get('devices', [BiometricDeviceController::class, 'index'])->middleware('permission:attendance.device.manage');
+            Route::post('devices', [BiometricDeviceController::class, 'store'])->middleware('permission:attendance.device.manage');
+            Route::delete('devices/{device}', [BiometricDeviceController::class, 'destroy'])->middleware('permission:attendance.device.manage');
+        });
     });
 
     // --- Leave (module-gated) ---
@@ -126,6 +150,8 @@ Route::middleware(['auth:api', 'tenant'])->group(function (): void {
 
     // --- Payroll (module-gated) ---
     Route::middleware('module:payroll')->prefix('payroll')->group(function (): void {
+        Route::get('settings', [PayrollController::class, 'settings'])->middleware('permission:payroll.structure.manage');
+        Route::match(['put', 'patch'], 'settings', [PayrollController::class, 'updateSettings'])->middleware('permission:payroll.structure.manage');
         Route::get('components', [PayrollController::class, 'components'])->middleware('permission:payroll.structure.manage');
         Route::post('components', [PayrollController::class, 'storeComponent'])->middleware('permission:payroll.structure.manage');
         Route::get('structures/{employee}', [PayrollController::class, 'showStructure'])->middleware('permission:payroll.structure.manage');

@@ -30,6 +30,7 @@ final class PayrollService
     public function __construct(
         private readonly FeatureAccess $access,
         private readonly NotificationService $notifications,
+        private readonly StatutoryCalculator $statutory,
     ) {}
 
     public function createRun(int $year, int $month, string $mode = 'attendance_payroll'): PayrollRun
@@ -73,7 +74,10 @@ final class PayrollService
             && $this->access->canAccessModule('attendance')
             && Schema::hasTable('attendance_records');
 
-        return DB::transaction(function () use ($run, $daysInMonth, $attendanceLicensed) {
+        // Statutory deductions (PF/ESI/TDS) apply only when the plan includes them.
+        $statutoryEnabled = $this->access->canUseFeature('payroll.statutory');
+
+        return DB::transaction(function () use ($run, $daysInMonth, $attendanceLicensed, $statutoryEnabled) {
             $run->update(['status' => 'processing']);
 
             $totalGross = 0;
@@ -92,7 +96,7 @@ final class PayrollService
                 ->groupBy('employee_id');
 
             foreach ($structures as $structure) {
-                $slip = $this->computePayslip($structure, $run, $daysInMonth, $attendanceLicensed);
+                $slip = $this->computePayslip($structure, $run, $daysInMonth, $attendanceLicensed, $statutoryEnabled);
 
                 // Apply ad-hoc adjustments (positive = earning, negative = deduction).
                 $adjLines = [];
@@ -248,12 +252,13 @@ final class PayrollService
     /**
      * @return array{gross:int,deductions:int,net:int,worked_days:float,lop_days:float,breakdown:array}
      */
-    private function computePayslip(SalaryStructure $structure, PayrollRun $run, int $daysInMonth, bool $attendanceLicensed): array
+    private function computePayslip(SalaryStructure $structure, PayrollRun $run, int $daysInMonth, bool $attendanceLicensed, bool $statutoryEnabled = false): array
     {
         $earnings = [];
         $deductions = [];
         $grossFull = 0;
         $deductionTotal = 0;
+        $basic = 0;
 
         foreach ($structure->lines as $line) {
             $component = $line->component;
@@ -264,9 +269,21 @@ final class PayrollService
             if ($component->isEarning()) {
                 $earnings[] = ['code' => $component->code, 'name' => $component->name, 'amount' => $line->amount];
                 $grossFull += $line->amount;
+                if (strtoupper((string) $component->code) === 'BASIC') {
+                    $basic += $line->amount;
+                }
             } else {
                 $deductions[] = ['code' => $component->code, 'name' => $component->name, 'amount' => $line->amount];
                 $deductionTotal += $line->amount;
+            }
+        }
+
+        // Statutory deductions (PF/ESI/TDS) computed on basic + gross.
+        if ($statutoryEnabled) {
+            $existingCodes = array_map(fn ($d) => (string) $d['code'], $deductions);
+            foreach ($this->statutory->deductions($basic, $grossFull, $existingCodes) as $line) {
+                $deductions[] = $line;
+                $deductionTotal += $line['amount'];
             }
         }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Billing\Console\RunBillingCycle;
 use App\Domains\Subscription\Console\SweepSubscriptions;
 use App\Http\Middleware\EnsureFeatureAccess;
 use App\Http\Middleware\EnsureModuleAccess;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         SweepSubscriptions::class,
+        RunBillingCycle::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
